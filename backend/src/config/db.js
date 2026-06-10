@@ -2,7 +2,7 @@ const sql = require("mssql");
 
 const config = {
   user: "sa",
-  password: "admin123!",
+  password: "Admin123@",
   server: "127.0.0.1",
   port: 1433,
   database: "EmergencyResponseDB",

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext, useState } from "react";
 import {
   SafeAreaView,
   View,
@@ -9,7 +9,26 @@ import {
   StatusBar,
 } from "react-native";
 
+import { AppContext } from "../context/AppContext";
+
 export default function LoginScreen({ navigation }) {
+  const { setUser } = useContext(AppContext);
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleLogin = () => {
+    // Temporary login
+    // Later Member A will connect this to backend API
+
+    setUser({
+      name: "Sana Batool",
+      email: email || "sanabatool863@gmail.com",
+    });
+
+    navigation.replace("Main");
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
@@ -31,12 +50,16 @@ export default function LoginScreen({ navigation }) {
           placeholder="Email Address"
           keyboardType="email-address"
           style={styles.input}
+          value={email}
+          onChangeText={setEmail}
         />
 
         <TextInput
           placeholder="Password"
           secureTextEntry
           style={styles.input}
+          value={password}
+          onChangeText={setPassword}
         />
 
         <TouchableOpacity>
@@ -46,7 +69,7 @@ export default function LoginScreen({ navigation }) {
         {/* LOGIN BUTTON */}
         <TouchableOpacity
           style={styles.loginBtn}
-          onPress={() => navigation.replace("Home")}
+          onPress={handleLogin}
         >
           <Text style={styles.btnText}>Sign In</Text>
         </TouchableOpacity>
@@ -54,10 +77,16 @@ export default function LoginScreen({ navigation }) {
 
       {/* FOOTER */}
       <View style={styles.footer}>
-        <Text style={styles.footerText}>Don't have an account?</Text>
+        <Text style={styles.footerText}>
+          Don't have an account?
+        </Text>
 
-        <TouchableOpacity onPress={() => navigation.navigate("Register")}>
-          <Text style={styles.link}> Create Account</Text>
+        <TouchableOpacity
+          onPress={() => navigation.navigate("Register")}
+        >
+          <Text style={styles.link}>
+            {" "}Create Account
+          </Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
