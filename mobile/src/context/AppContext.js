@@ -4,8 +4,8 @@ export const AppContext = createContext();
 
 export default function AppProvider({ children }) {
   const [user, setUser] = useState({
-    name: "Test User",
-    email: "test@gmail.com",
+    name: "",
+    email: "",
   });
 
   const [history, setHistory] = useState([]);
@@ -14,11 +14,26 @@ export default function AppProvider({ children }) {
     setHistory((prev) => [item, ...prev]);
   };
 
+  const loginUser = (userData) => {
+    setUser(userData);
+  };
+
+  const logoutUser = () => {
+    setUser({
+      name: "",
+      email: "",
+    });
+
+    setHistory([]);
+  };
+
   return (
     <AppContext.Provider
       value={{
         user,
         setUser,
+        loginUser,
+        logoutUser,
         history,
         addHistory,
       }}

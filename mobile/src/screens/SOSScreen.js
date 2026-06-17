@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Alert,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 
 import { AppContext } from "../context/AppContext";
@@ -18,32 +19,52 @@ export default function SOSScreen({ route, navigation }) {
   const selectedType = route?.params?.type || "General";
 
   const [notes, setNotes] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const submitSOS = () => {
-    const emergencyData = {
-      type: selectedType,
-      notes: notes || "No additional details",
-      status: "Pending",
-      time: new Date().toLocaleString(),
-    };
+    if (!notes.trim()) {
+      Alert.alert(
+        "Missing Information",
+        "Please provide emergency details before submitting."
+      );
+      return;
+    }
 
-    addHistory(emergencyData);
+    setLoading(true);
 
-    Alert.alert(
-      "SOS Submitted",
-      "Emergency request has been recorded successfully.",
-      [
-        {
-          text: "OK",
-          onPress: () => navigation.navigate("History"),
-        },
-      ]
-    );
+    setTimeout(() => {
+      const emergencyData = {
+        id: Date.now().toString(),
+        type: selectedType,
+        notes,
+        status: "Pending",
+        time: new Date().toLocaleString(),
+      };
+
+      addHistory(emergencyData);
+
+      setLoading(false);
+      setNotes("");
+
+      Alert.alert(
+        "SOS Submitted",
+        "Your emergency request has been recorded successfully.",
+        [
+          {
+            text: "OK",
+            onPress: () => navigation.goBack(),
+          },
+        ]
+      );
+    }, 1200);
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 30 }}
+      >
         {/* HEADER */}
         <View style={styles.header}>
           <Text style={styles.heading}>
@@ -51,11 +72,11 @@ export default function SOSScreen({ route, navigation }) {
           </Text>
 
           <Text style={styles.subHeading}>
-            Provide details so responders can help faster.
+            Provide emergency details for faster assistance.
           </Text>
         </View>
 
-        {/* EMERGENCY TYPE */}
+        {/* TYPE */}
         <View style={styles.card}>
           <Text style={styles.label}>
             Emergency Type
@@ -68,16 +89,14 @@ export default function SOSScreen({ route, navigation }) {
           </View>
         </View>
 
-        {/* LOCATION CARD */}
+        {/* LOCATION */}
         <View style={styles.card}>
           <Text style={styles.label}>
             Current Location
           </Text>
 
           <View style={styles.locationBox}>
-            <Text style={styles.locationIcon}>
-              📍
-            </Text>
+            <Text style={styles.locationIcon}>📍</Text>
 
             <View>
               <Text style={styles.locationTitle}>
@@ -85,7 +104,7 @@ export default function SOSScreen({ route, navigation }) {
               </Text>
 
               <Text style={styles.locationText}>
-                GPS integration coming soon
+                GPS integration will be connected in Phase 2
               </Text>
             </View>
           </View>
@@ -94,43 +113,57 @@ export default function SOSScreen({ route, navigation }) {
         {/* NOTES */}
         <View style={styles.card}>
           <Text style={styles.label}>
-            Additional Information
+            Emergency Details
           </Text>
 
           <TextInput
             placeholder="Describe your emergency situation..."
             placeholderTextColor="#94A3B8"
             multiline
-            numberOfLines={6}
             value={notes}
             onChangeText={setNotes}
             style={styles.textArea}
           />
         </View>
 
-        {/* PRIORITY INFO */}
-        <View style={styles.infoCard}>
-          <Text style={styles.infoTitle}>
+        {/* NOTICE */}
+        <View style={styles.noticeCard}>
+          <Text style={styles.noticeTitle}>
             ⚠ Emergency Notice
           </Text>
 
-          <Text style={styles.infoText}>
-            Press submit only for real emergencies.
-            False alerts may affect emergency response services.
+          <Text style={styles.noticeText}>
+            Submit requests only for real emergencies. False
+            alerts may delay assistance for people in need.
           </Text>
         </View>
 
         {/* BUTTON */}
         <TouchableOpacity
-          style={styles.submitButton}
+          style={[
+            styles.submitButton,
+            loading && { opacity: 0.7 },
+          ]}
+          disabled={loading}
           onPress={submitSOS}
         >
-          <Text style={styles.submitText}>
-            Submit SOS Alert
-          </Text>
-        </TouchableOpacity>
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator
+                size="small"
+                color="#FFFFFF"
+              />
 
-        <View style={{ height: 30 }} />
+              <Text style={styles.submitText}>
+                Submitting...
+              </Text>
+            </View>
+          ) : (
+            <Text style={styles.submitText}>
+              Submit SOS Alert
+            </Text>
+          )}
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
@@ -155,8 +188,8 @@ const styles = StyleSheet.create({
   },
 
   subHeading: {
-    marginTop: 6,
     color: "#64748B",
+    marginTop: 6,
     fontSize: 15,
   },
 
@@ -166,15 +199,6 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     padding: 18,
     borderRadius: 18,
-
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-
     elevation: 3,
   },
 
@@ -188,13 +212,13 @@ const styles = StyleSheet.create({
   typeBox: {
     backgroundColor: "#FEE2E2",
     padding: 14,
-    borderRadius: 14,
+    borderRadius: 12,
   },
 
   typeText: {
     color: "#D62828",
-    fontWeight: "700",
     fontSize: 16,
+    fontWeight: "700",
   },
 
   locationBox: {
@@ -203,7 +227,7 @@ const styles = StyleSheet.create({
   },
 
   locationIcon: {
-    fontSize: 26,
+    fontSize: 28,
     marginRight: 12,
   },
 
@@ -218,29 +242,29 @@ const styles = StyleSheet.create({
   },
 
   textArea: {
+    minHeight: 140,
     backgroundColor: "#F8FAFC",
     borderRadius: 14,
     padding: 15,
     textAlignVertical: "top",
-    minHeight: 130,
     color: "#0F172A",
   },
 
-  infoCard: {
+  noticeCard: {
     backgroundColor: "#FEF3C7",
     marginHorizontal: 20,
+    marginBottom: 20,
     padding: 16,
     borderRadius: 16,
-    marginBottom: 20,
   },
 
-  infoTitle: {
-    fontWeight: "700",
+  noticeTitle: {
     color: "#92400E",
+    fontWeight: "700",
     marginBottom: 6,
   },
 
-  infoText: {
+  noticeText: {
     color: "#92400E",
     lineHeight: 20,
   },
@@ -251,21 +275,18 @@ const styles = StyleSheet.create({
     padding: 18,
     borderRadius: 18,
     alignItems: "center",
-
-    shadowColor: "#D62828",
-    shadowOffset: {
-      width: 0,
-      height: 6,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-
     elevation: 6,
+  },
+
+  loadingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
   },
 
   submitText: {
     color: "#FFFFFF",
     fontWeight: "bold",
     fontSize: 17,
+    marginLeft: 8,
   },
 });

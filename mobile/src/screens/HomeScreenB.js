@@ -15,10 +15,16 @@ export default function HomeScreenB({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 30 }}
+      >
         {/* HEADER */}
         <View style={styles.header}>
-          <Text style={styles.greeting}>Emergency Assistance</Text>
+          <Text style={styles.greeting}>
+            Emergency Assistance
+          </Text>
+
           <Text style={styles.subtitle}>
             Fast, reliable support when every second matters.
           </Text>
@@ -30,11 +36,13 @@ export default function HomeScreenB({ navigation }) {
             style={styles.sosButton}
             onPress={() => openSOS("General")}
           >
-            <Text style={styles.sosText}>SOS</Text>
+            <Text style={styles.sosText}>
+              SOS
+            </Text>
           </TouchableOpacity>
 
           <Text style={styles.sosLabel}>
-            Emergency Alert
+            Tap for Immediate Emergency Help
           </Text>
         </View>
 
@@ -49,7 +57,11 @@ export default function HomeScreenB({ navigation }) {
             onPress={() => openSOS("Medical")}
           >
             <Text style={styles.icon}>🚑</Text>
-            <Text style={styles.cardTitle}>Medical</Text>
+
+            <Text style={styles.cardTitle}>
+              Medical
+            </Text>
+
             <Text style={styles.cardDesc}>
               Request medical assistance
             </Text>
@@ -60,7 +72,11 @@ export default function HomeScreenB({ navigation }) {
             onPress={() => openSOS("Fire")}
           >
             <Text style={styles.icon}>🔥</Text>
-            <Text style={styles.cardTitle}>Fire</Text>
+
+            <Text style={styles.cardTitle}>
+              Fire
+            </Text>
+
             <Text style={styles.cardDesc}>
               Report fire emergency
             </Text>
@@ -71,7 +87,11 @@ export default function HomeScreenB({ navigation }) {
             onPress={() => openSOS("Crime")}
           >
             <Text style={styles.icon}>🚔</Text>
-            <Text style={styles.cardTitle}>Crime</Text>
+
+            <Text style={styles.cardTitle}>
+              Crime
+            </Text>
+
             <Text style={styles.cardDesc}>
               Contact law enforcement
             </Text>
@@ -82,7 +102,11 @@ export default function HomeScreenB({ navigation }) {
             onPress={() => openSOS("Accident")}
           >
             <Text style={styles.icon}>🚗</Text>
-            <Text style={styles.cardTitle}>Accident</Text>
+
+            <Text style={styles.cardTitle}>
+              Accident
+            </Text>
+
             <Text style={styles.cardDesc}>
               Report road accident
             </Text>
@@ -141,7 +165,7 @@ const styles = StyleSheet.create({
   },
 
   sosText: {
-    color: "#fff",
+    color: "#FFFFFF",
     fontSize: 42,
     fontWeight: "bold",
   },
@@ -159,6 +183,7 @@ const styles = StyleSheet.create({
     color: "#0F172A",
     marginHorizontal: 20,
     marginBottom: 15,
+    marginTop: 10,
   },
 
   grid: {
@@ -170,7 +195,7 @@ const styles = StyleSheet.create({
 
   card: {
     width: "48%",
-    backgroundColor: "#fff",
+    backgroundColor: "#FFFFFF",
     borderRadius: 20,
     padding: 18,
     marginBottom: 15,
@@ -201,44 +226,5 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#64748B",
     marginTop: 5,
-  },
-
-  activityCard: {
-    backgroundColor: "#fff",
-    marginHorizontal: 20,
-    marginBottom: 12,
-    borderRadius: 18,
-    padding: 15,
-    flexDirection: "row",
-    alignItems: "center",
-
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.08,
-    shadowRadius: 5,
-
-    elevation: 3,
-  },
-
-  activityLeft: {
-    marginRight: 15,
-  },
-
-  activityIcon: {
-    fontSize: 28,
-  },
-
-  activityTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#0F172A",
-  },
-
-  activityTime: {
-    color: "#64748B",
-    marginTop: 3,
   },
 });

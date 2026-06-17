@@ -27,6 +27,8 @@ export default function HistoryScreen() {
     }
   };
 
+  const reversedHistory = [...history].reverse();
+
   const renderItem = ({ item }) => (
     <View style={styles.card}>
       <View style={styles.topRow}>
@@ -35,7 +37,7 @@ export default function HistoryScreen() {
             {getIcon(item.type)}
           </Text>
 
-          <View>
+          <View style={{ flex: 1 }}>
             <Text style={styles.title}>
               {item.type} Emergency
             </Text>
@@ -53,6 +55,12 @@ export default function HistoryScreen() {
         </View>
       </View>
 
+      <View style={styles.divider} />
+
+      <Text style={styles.notesLabel}>
+        Emergency Details
+      </Text>
+
       <Text style={styles.notes}>
         {item.notes}
       </Text>
@@ -66,35 +74,34 @@ export default function HistoryScreen() {
       </Text>
 
       <Text style={styles.subHeading}>
-        Track all emergency requests
+        View all submitted emergency requests
       </Text>
 
       {history.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyIcon}>
-            📭
+            🚨
           </Text>
 
           <Text style={styles.emptyTitle}>
-            No Emergency Records
+            No Emergency Requests Found
           </Text>
 
           <Text style={styles.emptyText}>
-            Your submitted emergency requests
-            will appear here.
+            Your SOS requests will appear here after submission.
           </Text>
         </View>
       ) : (
         <FlatList
-          data={history}
-          keyExtractor={(_, index) =>
-            index.toString()
-          }
+          data={reversedHistory}
           renderItem={renderItem}
+          keyExtractor={(item, index) =>
+            item.id || index.toString()
+          }
+          showsVerticalScrollIndicator={false}
           contentContainerStyle={{
             paddingBottom: 30,
           }}
-          showsVerticalScrollIndicator={false}
         />
       )}
     </SafeAreaView>
@@ -127,16 +134,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 18,
     marginBottom: 15,
-
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.08,
-    shadowRadius: 5,
-
-    elevation: 3,
+    elevation: 4,
   },
 
   topRow: {
@@ -152,7 +150,7 @@ const styles = StyleSheet.create({
   },
 
   icon: {
-    fontSize: 30,
+    fontSize: 32,
     marginRight: 12,
   },
 
@@ -164,7 +162,7 @@ const styles = StyleSheet.create({
 
   time: {
     color: "#64748B",
-    marginTop: 3,
+    marginTop: 4,
     fontSize: 13,
   },
 
@@ -177,14 +175,26 @@ const styles = StyleSheet.create({
 
   statusText: {
     color: "#92400E",
-    fontWeight: "600",
+    fontWeight: "700",
     fontSize: 12,
   },
 
-  notes: {
-    marginTop: 14,
+  divider: {
+    height: 1,
+    backgroundColor: "#E2E8F0",
+    marginVertical: 14,
+  },
+
+  notesLabel: {
+    fontSize: 13,
+    fontWeight: "700",
     color: "#475569",
-    lineHeight: 20,
+    marginBottom: 6,
+  },
+
+  notes: {
+    color: "#334155",
+    lineHeight: 22,
   },
 
   emptyContainer: {
@@ -201,13 +211,13 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "700",
     color: "#0F172A",
-    marginTop: 20,
+    marginTop: 15,
   },
 
   emptyText: {
-    color: "#64748B",
-    textAlign: "center",
     marginTop: 10,
+    textAlign: "center",
+    color: "#64748B",
     lineHeight: 22,
     paddingHorizontal: 20,
   },
