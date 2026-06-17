@@ -5,7 +5,7 @@ const config = {
   password: "admin123!",
   server: "127.0.0.1",
   port: 1433,
-  database: "EmergencyResponseDB",
+  database: "EmergencyAppDB",
 
   options: {
     encrypt: true,
