@@ -1,23 +1,26 @@
 const bcrypt = require("bcryptjs");
 const { sql } = require("../config/db");
 const jwt = require("jsonwebtoken");
-const crypto = require("crypto"); // 🔥 Added for generating unique varchar(36) IDs
+const crypto = require("crypto");
 
 const registerUser = async (req, res) => {
   try {
     const { name, phone, password } = req.body;
 
-    if (!name || !phone || !password) {
+    // 🔥 Strict validation taake khali ya undefined strings DB tak na jayein
+    if (!name || !phone || !password || phone.trim() === "" || password.trim() === "") {
       return res.status(400).json({
         success: false,
-        message: "All fields are required",
+        message: "All fields are required and cannot be empty",
       });
     }
+
+    const cleanPhone = phone.trim();
 
     // 1. Column matched with DB structure 'phone_number'
     const existingUser = await sql.query`
       SELECT * FROM [users]
-      WHERE phone_number = ${phone}
+      WHERE phone_number = ${cleanPhone}
     `;
 
     if (existingUser.recordset.length > 0) {
@@ -27,17 +30,15 @@ const registerUser = async (req, res) => {
       });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // 🔥 Generate Unique UUID String for your varchar(36) PK column
+    const hashedPassword = await bcrypt.hash(password.trim(), 10);
     const userId = crypto.randomUUID();
 
-    // 2. Insert columns matched to your DB (id, full_name, phone_number, password_hash)
+    // 2. Insert clean data explicitly
     await sql.query`
       INSERT INTO [users]
       (id, full_name, phone_number, password_hash)
       VALUES
-      (${userId}, ${name}, ${phone}, ${hashedPassword})
+      (${userId}, ${name.trim()}, ${cleanPhone}, ${hashedPassword})
     `;
 
     res.status(201).json({
@@ -46,7 +47,7 @@ const registerUser = async (req, res) => {
     });
 
   } catch (error) {
-    console.log(error);
+    console.error("Registration DB Error:", error);
     res.status(500).json({
       success: false,
       message: "Server Error",
@@ -58,17 +59,19 @@ const loginUser = async (req, res) => {
   try {
     const { phone, password } = req.body;
 
-    if (!phone || !password) {
+    if (!phone || !password || phone.trim() === "" || password.trim() === "") {
       return res.status(400).json({
         success: false,
         message: "Phone and password are required",
       });
     }
 
-    // 3. Column checked from DB 'phone_number'
+    const cleanPhone = phone.trim();
+
+    // 3. Explicitly fetching using cleaned string
     const result = await sql.query`
       SELECT * FROM [users]
-      WHERE phone_number = ${phone}
+      WHERE phone_number = ${cleanPhone}
     `;
 
     if (result.recordset.length === 0) {
@@ -82,7 +85,7 @@ const loginUser = async (req, res) => {
 
     // 4. Verification using database snake_case keys
     const isMatch = await bcrypt.compare(
-      password,
+      password.trim(),
       user.password_hash
     );
 
@@ -99,7 +102,7 @@ const loginUser = async (req, res) => {
         id: user.id,
         phone: user.phone_number,
       },
-      process.env.JWT_SECRET,
+      process.env.JWT_SECRET || "SUPER_SECRET_KEY_123",
       {
         expiresIn: "7d",
       }
@@ -118,7 +121,7 @@ const loginUser = async (req, res) => {
     });
 
   } catch (error) {
-    console.log(error);
+    console.error("Login DB Error:", error);
     res.status(500).json({
       success: false,
       message: "Server Error",
