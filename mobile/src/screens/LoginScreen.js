@@ -39,55 +39,64 @@ export default function LoginScreen({ navigation }) {
   };
 
   const handleLogin = async () => {
-    if (!validateInputs()) {
-      return;
-    }
+  if (!validateInputs()) return;
 
-    setLoading(true);
+  setLoading(true);
 
-    try {
-      console.log("Attempting login with:", { phone });
+  try {
+    console.log("Attempting login with:", { phone });
 
-      const response = await API.post("/auth/login", {
-        phone,
-        password,
-      });
+    const response = await API.post("/auth/login", {
+      phone,
+      password,
+    });
 
-      console.log("Login Response:", response.data);
+    console.log("Login Response:", response.data);
 
-      if (response?.data?.token) {
-        await saveToken(response.data.token);
+    if (response?.data?.token && response?.data?.user) {
+      const { token, user } = response.data;
 
-        Alert.alert("Login Successful", "Welcome back!", [
-          {
-            text: "Continue",
-            onPress: () => navigation.replace("Home"),
+      await saveToken(token);
+
+      // Save user 
+      await AsyncStorage.setItem("user", JSON.stringify(user));
+
+      Alert.alert("Login Successful", "Welcome back!", [
+        {
+          text: "Continue",
+          onPress: () => {
+            // Role-based navigation
+            if (user.role === "admin") {
+              navigation.replace("AdminHome"); 
+            } else {
+              navigation.replace("Profile"); 
+            }
           },
-        ]);
-      } else {
-        throw new Error("Invalid response from server");
-      }
-    } catch (error) {
-      console.error("Login Error:", error);
-
-      let errorMessage =
-        "Invalid data. Please check your phone number and password.";
-
-      if (error.response) {
-        // Server error
-        errorMessage =
-          error.response?.data?.message ||
-          error.response?.data?.error ||
-          "Invalid phone number or password";
-      } else if (error.request) {
-        errorMessage = "Network error. Please check your internet connection.";
-      }
-
-      Alert.alert("Login Failed", errorMessage);
-    } finally {
-      setLoading(false);
+        },
+      ]);
+    } else {
+      throw new Error("Invalid response from server");
     }
-  };
+  } catch (error) {
+    console.error("Login Error:", error);
+
+    let errorMessage =
+      "Invalid data. Please check your phone number and password.";
+
+    if (error.response) {
+      errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        "Invalid phone number or password";
+    } else if (error.request) {
+      errorMessage = "Network error. Please check your internet connection.";
+    }
+
+    Alert.alert("Login Failed", errorMessage);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <SafeAreaView style={styles.container}>
