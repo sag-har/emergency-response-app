@@ -3,7 +3,7 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const { connectDB } = require("./src/config/db");
 
-// Load Environment Configuration [cite: 83]
+// Load Environment Configuration
 dotenv.config();
 
 const app = express();
@@ -12,23 +12,34 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Initialize Database Instance
-connectDB();
-
 // Route Integrations
 const healthRoutes = require("./src/routes/healthRoutes");
 const authRoutes = require("./src/routes/authRoutes");
 const testRoutes = require("./src/routes/testRoutes");
-const emergencyRoutes = require("./src/routes/emergencyRoutes"); // Week 2 core requirement 
+const emergencyRoutes = require("./src/routes/emergencyRoutes"); 
 
+// Mounting API Endpoints cleanly
 app.use("/api", healthRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/test", testRoutes);
-app.use("/api", emergencyRoutes); // Adds /api/emergency endpoint base [cite: 22]
+app.use("/api/emergency", emergencyRoutes); // Static clean mounting for Week 2 endpoints
 
-// server.js ke aakhri hissay ko aise update karo:
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server running globally on port ${PORT}`);
-});
+// Async function to guarantee DB connects before Express binds the port
+const startServer = async () => {
+  try {
+    // 1. Initialize Database Instance
+    await connectDB();
+
+    // 2. Start Listening globally (Keeps the process active & running)
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`🚀 Server running globally on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error("❌ Failed to start infrastructure server:", error);
+    process.exit(1);
+  }
+};
+
+startServer();
