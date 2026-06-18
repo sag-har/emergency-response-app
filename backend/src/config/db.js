@@ -3,8 +3,9 @@ const sql = require("mssql");
 const config = {
   user: process.env.DB_USER || "sa",
   password: process.env.DB_PASSWORD || "admin123!",
-  server: "127.0.0.1", // Isay 127.0.0.1 ya localhost hi rakho taake backend to DB connection na tootay
-  port: 1433,
+  // 🔥 Isay process.env.DB_SERVER se uthao, taake log apne mutabiq IP set kar sakein
+  server: process.env.DB_SERVER || "127.0.0.1", 
+  port: parseInt(process.env.DB_PORT) || 1433,
   database: "EmergencyAppDB",
   options: {
     encrypt: true,
@@ -18,7 +19,7 @@ const connectDB = async () => {
     console.log("🚀 SQL Server Connected Successfully");
   } catch (error) {
     console.error("❌ Database Connection Error:", error);
-    process.exit(1); // Stop server if DB fails
+    process.exit(1);
   }
 };
 
