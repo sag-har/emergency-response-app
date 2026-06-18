@@ -1,16 +1,6 @@
 import React, { useEffect, useState, useLayoutEffect } from "react";
-import {
-  SafeAreaView,
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  StatusBar,
-  ActivityIndicator,
-  Alert,
-  ScrollView,
-  Dimensions,
-} from "react-native";
+import { SafeAreaView, View, Text, TouchableOpacity, StyleSheet, StatusBar, ActivityIndicator, Alert, ScrollView, Dimensions, } 
+from "react-native";
 
 import { getToken, removeToken } from "../storage/authStorage";
 
@@ -110,7 +100,7 @@ export default function HomeScreen({ navigation }) {
           </Text>
         </View>
 
-        {/* Features*/}
+        {/* Features */}
         <View style={styles.featuresContainer}>
           <Text style={styles.sectionTitle}>Our Services</Text>
 

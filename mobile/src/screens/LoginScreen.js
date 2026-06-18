@@ -1,18 +1,6 @@
 import React, { useState } from "react";
-import {
-  SafeAreaView,
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  StatusBar,
-  ActivityIndicator,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-} from "react-native";
+import { SafeAreaView, View, Text, TextInput, TouchableOpacity, StyleSheet, StatusBar, ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, } 
+from "react-native";
 
 import API from "../services/api";
 import { saveToken } from "../storage/authStorage";
@@ -22,7 +10,7 @@ export default function LoginScreen({ navigation }) {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Real-time field validation
+  // field validation
   const [phoneError, setPhoneError] = useState("");
   const [passwordError, setPasswordError] = useState("");
 
@@ -127,7 +115,7 @@ export default function LoginScreen({ navigation }) {
               value={phone}
               onChangeText={(text) => {
                 setPhone(text);
-                if (phoneError) setPhoneError(""); // Clear error while typing
+                if (phoneError) setPhoneError(""); 
               }}
               style={[styles.input, phoneError && styles.inputError]}
               maxLength={11}
@@ -143,7 +131,7 @@ export default function LoginScreen({ navigation }) {
               value={password}
               onChangeText={(text) => {
                 setPassword(text);
-                if (passwordError) setPasswordError(""); // Clear error while typing
+                if (passwordError) setPasswordError(""); 
               }}
               style={[styles.input, passwordError && styles.inputError]}
               editable={!loading}
