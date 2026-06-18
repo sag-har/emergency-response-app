@@ -1,12 +1,11 @@
 const sql = require("mssql");
 
 const config = {
-  user: "sa",
-  password: "admin123!",
-  server: "127.0.0.1",
+  user: process.env.DB_USER || "sa",
+  password: process.env.DB_PASSWORD || "admin123!",
+  server: "127.0.0.1", // Isay 127.0.0.1 ya localhost hi rakho taake backend to DB connection na tootay
   port: 1433,
-  database: "EmergencyResponseDB",
-
+  database: "EmergencyAppDB",
   options: {
     encrypt: true,
     trustServerCertificate: true,
@@ -16,9 +15,10 @@ const config = {
 const connectDB = async () => {
   try {
     await sql.connect(config);
-    console.log("SQL Server Connected");
+    console.log("🚀 SQL Server Connected Successfully");
   } catch (error) {
-    console.error("Database Error:", error);
+    console.error("❌ Database Connection Error:", error);
+    process.exit(1); // Stop server if DB fails
   }
 };
 
