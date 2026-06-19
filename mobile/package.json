@@ -1,24 +1,30 @@
 {
   "name": "mobile",
   "version": "1.0.0",
-<<<<<<< HEAD
   "main": "node_modules/expo/AppEntry.js",
-=======
-  "main": "index.ts",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
+  },
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",
+    "@react-native-async-storage/async-storage": "2.2.0",
     "@react-navigation/bottom-tabs": "^7.17.2",
-    "@react-navigation/native": "^7.3.0",
+    "@react-navigation/native": "^7.3.3",
     "@react-navigation/native-stack": "^7.17.2",
-    "expo": "~56.0.9",
+    "@react-navigation/stack": "^7.10.5",
+    "axios": "^1.18.0",
+    "expo": "^56.0.11",
     "expo-status-bar": "~56.0.4",
-    "react": "19.2.3",
-    "react-dom": "19.2.3",
-    "react-native": "0.85.3",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "react-native": "^0.86.0",
     "react-native-gesture-handler": "~2.31.1",
     "react-native-reanimated": "4.3.1",
-    "react-native-safe-area-context": "~5.7.0",
-    "react-native-screens": "4.25.2",
+    "react-native-safe-area-context": "^5.8.0",
+    "react-native-screens": "^4.25.2",
     "react-native-vector-icons": "^10.3.0",
     "react-native-web": "^0.21.2"
   },
@@ -26,33 +32,5 @@
     "@types/react": "~19.2.2",
     "typescript": "~6.0.3"
   },
->>>>>>> origin/feat/navigation-ui
-  "scripts": {
-    "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-<<<<<<< HEAD
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
-  "dependencies": {
-    "@react-native-async-storage/async-storage": "2.2.0",
-    "@react-navigation/native": "^7.3.3",
-    "@react-navigation/stack": "^7.10.5",
-    "axios": "^1.18.0",
-    "expo": "^56.0.11",
-    "react-dom": "^19.2.7",
-    "react-native": "^0.86.0",
-    "react-native-safe-area-context": "^5.8.0",
-    "react-native-screens": "^4.25.2",
-    "react-native-web": "^0.21.2"
-  }
-=======
-    "web": "expo start --web"
-  },
   "private": true
->>>>>>> origin/feat/navigation-ui
 }

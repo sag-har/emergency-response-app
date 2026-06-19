@@ -33,15 +33,11 @@ export default function SOSScreen({ route, navigation }) {
     setLoading(true);
 
     setTimeout(() => {
-<<<<<<< HEAD
-      const emergencyData = {
-        id: Date.now().toString(),
-=======
       const requestId = `REQ-${Date.now()}`;
 
+      // 🔥 Content Cleaned: Duplication and git conflict markers removed completely
       const emergencyData = {
         id: requestId,
->>>>>>> 758cba2 (Updated files and UI)
         type: selectedType,
         notes,
         status: "Pending",
@@ -53,7 +49,6 @@ export default function SOSScreen({ route, navigation }) {
       setLoading(false);
       setNotes("");
 
-<<<<<<< HEAD
       Alert.alert(
         "SOS Submitted",
         "Your emergency request has been recorded successfully.",
@@ -64,12 +59,11 @@ export default function SOSScreen({ route, navigation }) {
           },
         ]
       );
-=======
+      
       navigation.navigate("Confirmation", {
         requestId,
         status: "Pending",
       });
->>>>>>> 758cba2 (Updated files and UI)
     }, 1200);
   };
 
@@ -81,10 +75,7 @@ export default function SOSScreen({ route, navigation }) {
       >
         {/* HEADER */}
         <View style={styles.header}>
-          <Text style={styles.heading}>
-            Emergency SOS
-          </Text>
-
+          <Text style={styles.heading}>Emergency SOS</Text>
           <Text style={styles.subHeading}>
             Provide emergency details for faster assistance.
           </Text>
@@ -92,31 +83,19 @@ export default function SOSScreen({ route, navigation }) {
 
         {/* TYPE */}
         <View style={styles.card}>
-          <Text style={styles.label}>
-            Emergency Type
-          </Text>
-
+          <Text style={styles.label}>Emergency Type</Text>
           <View style={styles.typeBox}>
-            <Text style={styles.typeText}>
-              {selectedType}
-            </Text>
+            <Text style={styles.typeText}>{selectedType}</Text>
           </View>
         </View>
 
         {/* LOCATION */}
         <View style={styles.card}>
-          <Text style={styles.label}>
-            Current Location
-          </Text>
-
+          <Text style={styles.label}>Current Location</Text>
           <View style={styles.locationBox}>
             <Text style={styles.locationIcon}>📍</Text>
-
             <View>
-              <Text style={styles.locationTitle}>
-                Location Available
-              </Text>
-
+              <Text style={styles.locationTitle}>Location Available</Text>
               <Text style={styles.locationText}>
                 GPS integration will be connected in Phase 2
               </Text>
@@ -126,10 +105,7 @@ export default function SOSScreen({ route, navigation }) {
 
         {/* NOTES */}
         <View style={styles.card}>
-          <Text style={styles.label}>
-            Emergency Details
-          </Text>
-
+          <Text style={styles.label}>Emergency Details</Text>
           <TextInput
             placeholder="Describe your emergency situation..."
             placeholderTextColor="#94A3B8"
@@ -142,40 +118,26 @@ export default function SOSScreen({ route, navigation }) {
 
         {/* NOTICE */}
         <View style={styles.noticeCard}>
-          <Text style={styles.noticeTitle}>
-            ⚠ Emergency Notice
-          </Text>
-
+          <Text style={styles.noticeTitle}>⚠ Emergency Notice</Text>
           <Text style={styles.noticeText}>
-            Submit requests only for real emergencies. False
-            alerts may delay assistance for people in need.
+            Submit requests only for real emergencies. False alerts may delay
+            assistance for people in need.
           </Text>
         </View>
 
         {/* BUTTON */}
         <TouchableOpacity
-          style={[
-            styles.submitButton,
-            loading && { opacity: 0.7 },
-          ]}
+          style={[styles.submitButton, loading && { opacity: 0.7 }]}
           disabled={loading}
           onPress={submitSOS}
         >
           {loading ? (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator
-                size="small"
-                color="#FFFFFF"
-              />
-
-              <Text style={styles.submitText}>
-                Submitting...
-              </Text>
+              <ActivityIndicator size="small" color="#FFFFFF" />
+              <Text style={styles.submitText}>Submitting...</Text>
             </View>
           ) : (
-            <Text style={styles.submitText}>
-              Submit SOS Alert
-            </Text>
+            <Text style={styles.submitText}>Submit SOS Alert</Text>
           )}
         </TouchableOpacity>
       </ScrollView>
@@ -188,25 +150,21 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F8FAFC",
   },
-
   header: {
     paddingHorizontal: 20,
     paddingTop: 20,
     marginBottom: 20,
   },
-
   heading: {
     fontSize: 30,
     fontWeight: "bold",
     color: "#0F172A",
   },
-
   subHeading: {
     color: "#64748B",
     marginTop: 6,
     fontSize: 15,
   },
-
   card: {
     backgroundColor: "#FFFFFF",
     marginHorizontal: 20,
@@ -215,46 +173,38 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     elevation: 3,
   },
-
   label: {
     fontSize: 15,
     fontWeight: "700",
     color: "#0F172A",
     marginBottom: 12,
   },
-
   typeBox: {
     backgroundColor: "#FEE2E2",
     padding: 14,
     borderRadius: 12,
   },
-
   typeText: {
     color: "#D62828",
     fontSize: 16,
     fontWeight: "700",
   },
-
   locationBox: {
     flexDirection: "row",
     alignItems: "center",
   },
-
   locationIcon: {
     fontSize: 28,
     marginRight: 12,
   },
-
   locationTitle: {
     fontWeight: "700",
     color: "#0F172A",
   },
-
   locationText: {
     color: "#64748B",
     marginTop: 3,
   },
-
   textArea: {
     minHeight: 140,
     backgroundColor: "#F8FAFC",
@@ -263,7 +213,6 @@ const styles = StyleSheet.create({
     textAlignVertical: "top",
     color: "#0F172A",
   },
-
   noticeCard: {
     backgroundColor: "#FEF3C7",
     marginHorizontal: 20,
@@ -271,18 +220,15 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 16,
   },
-
   noticeTitle: {
     color: "#92400E",
     fontWeight: "700",
     marginBottom: 6,
   },
-
   noticeText: {
     color: "#92400E",
     lineHeight: 20,
   },
-
   submitButton: {
     backgroundColor: "#D62828",
     marginHorizontal: 20,
@@ -291,12 +237,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     elevation: 6,
   },
-
   loadingContainer: {
     flexDirection: "row",
     alignItems: "center",
   },
-
   submitText: {
     color: "#FFFFFF",
     fontWeight: "bold",
