@@ -1,21 +1,18 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
 import { AuthProvider } from './src/context/AuthContext';
-import LoginScreen from './src/screens/LoginScreen';
-import RegisterScreen from './src/screens/RegisterScreen';
-
-const Stack = createStackNavigator();
+import AppProvider from "./src/context/AppContext";
+import AuthNavigator from './src/navigation/AuthNavigator';
 
 export default function App() {
   return (
     <AuthProvider>
-      <NavigationContainer>
-        <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen name="Register" component={RegisterScreen} />
-        </Stack.Navigator>
-      </NavigationContainer>
+      <AppProvider>
+        <NavigationContainer>
+          {/* 🔥 Yeh AuthNavigator ab tumhari Login, Register aur MainNavigator (Tabs) sab ko khud handle karega */}
+          <AuthNavigator />
+        </NavigationContainer>
+      </AppProvider>
     </AuthProvider>
   );
 }
