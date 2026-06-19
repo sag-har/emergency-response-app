@@ -33,8 +33,15 @@ export default function SOSScreen({ route, navigation }) {
     setLoading(true);
 
     setTimeout(() => {
+<<<<<<< HEAD
       const emergencyData = {
         id: Date.now().toString(),
+=======
+      const requestId = `REQ-${Date.now()}`;
+
+      const emergencyData = {
+        id: requestId,
+>>>>>>> 758cba2 (Updated files and UI)
         type: selectedType,
         notes,
         status: "Pending",
@@ -46,6 +53,7 @@ export default function SOSScreen({ route, navigation }) {
       setLoading(false);
       setNotes("");
 
+<<<<<<< HEAD
       Alert.alert(
         "SOS Submitted",
         "Your emergency request has been recorded successfully.",
@@ -56,6 +64,12 @@ export default function SOSScreen({ route, navigation }) {
           },
         ]
       );
+=======
+      navigation.navigate("Confirmation", {
+        requestId,
+        status: "Pending",
+      });
+>>>>>>> 758cba2 (Updated files and UI)
     }, 1200);
   };
 
