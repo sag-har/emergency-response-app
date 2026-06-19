@@ -1,259 +1,313 @@
-/**
- * RegisterScreen.js
- * Phase 1 · Week 2 · Track B
- * Fields: Full Name, Phone Number, Password (with inline validation)
- * On success: store JWT via AsyncStorage, navigate to Home
- */
+import React, { useState } from "react";
+import { SafeAreaView, View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, StatusBar,} 
+from "react-native";
 
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ScrollView,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  StatusBar,
-} from 'react-native';
-import { useAuth } from '../context/AuthContext';
-import { registerUser } from '../services/api';
-import { validateFullName, validatePhone, validatePassword } from '../utils/validators';
-import { PrimaryButton, ErrorMessage } from '../components';
-import { COLORS, SIZES, SHADOWS } from '../utils/theme';
+import API from "../services/api";
 
-const RegisterScreen = ({ navigation }) => {
-  const { signIn } = useAuth();
-
-  const [form, setForm] = useState({
-    fullName: '',
-    phoneNumber: '',
-    password: '',
-  });
-
-  const [errors, setErrors] = useState({});
-  const [apiError, setApiError] = useState('');
+export default function RegisterScreen({ navigation }) {
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
 
-  // Update a field and clear its error
-  const handleChange = (field, value) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
-    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: null }));
-    setApiError('');
-  };
+  // Error S
+  const [nameError, setNameError] = useState("");
+  const [phoneError, setPhoneError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [confirmPasswordError, setConfirmPasswordError] = useState("");
 
-  // Inline validate on blur
-  const handleBlur = (field) => {
-    const validators = {
-      fullName: validateFullName,
-      phoneNumber: validatePhone,
-      password: validatePassword,
-    };
-    const err = validators[field]?.(form[field]);
-    if (err) setErrors((prev) => ({ ...prev, [field]: err }));
-  };
+  const validateInputs = () => {
+    let isValid = true;
 
-  const validate = () => {
-    const newErrors = {
-      fullName: validateFullName(form.fullName),
-      phoneNumber: validatePhone(form.phoneNumber),
-      password: validatePassword(form.password),
-    };
-    setErrors(newErrors);
-    return !Object.values(newErrors).some(Boolean);
+    setNameError("");
+    setPhoneError("");
+    setPasswordError("");
+    setConfirmPasswordError("");
+
+    // validation
+    if (!name.trim()) {
+      setNameError("Please fill this field");
+      isValid = false;
+    } else if (name.trim().length < 3) {
+      setNameError("Name must be at least 3 characters");
+      isValid = false;
+    }
+
+    if (!phone.trim()) {
+      setPhoneError("Please fill this field");
+      isValid = false;
+    } else if (phone.length !== 11) {
+      setPhoneError("Phone number must be 11 digits");
+      isValid = false;
+    }
+
+    if (!password.trim()) {
+      setPasswordError("Please fill this field");
+      isValid = false;
+    } else if (password.length < 6) {
+      setPasswordError("Password must be at least 6 characters");
+      isValid = false;
+    }
+
+    if (!confirmPassword.trim()) {
+      setConfirmPasswordError("Please fill this field");
+      isValid = false;
+    } else if (password !== confirmPassword) {
+      setConfirmPasswordError("Passwords do not match");
+      isValid = false;
+    }
+
+    return isValid;
   };
 
   const handleRegister = async () => {
-    if (!validate()) return;
+    if (!validateInputs()) {
+      return;
+    }
+
     setLoading(true);
-    setApiError('');
+
     try {
-      const data = await registerUser(form);
-      if (data.success) {
-        await signIn(data.token, data.user);
-        // Navigation handled by AuthNavigator (auto-redirects when token is set)
-      } else {
-        setApiError(data.message || 'Registration failed. Please try again.');
-      }
-    } catch {
-      setApiError('Cannot connect to server. Check your connection and try again.');
+      const response = await API.post("/auth/register", {
+        name: name.trim(),
+        phone,
+        password,
+      });
+
+      Alert.alert(
+        "Registration Successful",
+        response.data.message || "Account created successfully!",
+        [
+          {
+            text: "Go to Login",
+            onPress: () => navigation.navigate("Login"),
+          },
+        ],
+      );
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message ||
+        "Registration failed. Please try again.";
+      Alert.alert("Registration Failed", errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.flex}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
+
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.logo}>🚑</Text>
-          <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>
-            Join the Emergency Response Network
-          </Text>
-        </View>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* HEADER */}
+          <View style={styles.header}>
+            <Text style={styles.appName}>RESCUE</Text>
+            <Text style={styles.title}>Create Account</Text>
+            <Text style={styles.subtitle}>
+              Join us for fast emergency assistance
+            </Text>
+          </View>
 
-        {/* API Error */}
-        <ErrorMessage message={apiError} />
-
-        {/* Full Name */}
-        <View style={styles.fieldGroup}>
-          <Text style={styles.label}>Full Name</Text>
-          <TextInput
-            style={[styles.input, errors.fullName && styles.inputError]}
-            placeholder="e.g. Saghar Mehmood"
-            placeholderTextColor={COLORS.textLight}
-            value={form.fullName}
-            onChangeText={(v) => handleChange('fullName', v)}
-            onBlur={() => handleBlur('fullName')}
-            autoCapitalize="words"
-            returnKeyType="next"
-          />
-          {errors.fullName ? (
-            <Text style={styles.fieldError}>{errors.fullName}</Text>
-          ) : null}
-        </View>
-
-        {/* Phone Number */}
-        <View style={styles.fieldGroup}>
-          <Text style={styles.label}>Phone Number</Text>
-          <TextInput
-            style={[styles.input, errors.phoneNumber && styles.inputError]}
-            placeholder="03001234567"
-            placeholderTextColor={COLORS.textLight}
-            value={form.phoneNumber}
-            onChangeText={(v) => handleChange('phoneNumber', v)}
-            onBlur={() => handleBlur('phoneNumber')}
-            keyboardType="phone-pad"
-            maxLength={13}
-            returnKeyType="next"
-          />
-          {errors.phoneNumber ? (
-            <Text style={styles.fieldError}>{errors.phoneNumber}</Text>
-          ) : null}
-        </View>
-
-        {/* Password */}
-        <View style={styles.fieldGroup}>
-          <Text style={styles.label}>Password</Text>
-          <View style={styles.passwordRow}>
+          {/* FORM  */}
+          <View style={styles.card}>
             <TextInput
-              style={[styles.input, styles.passwordInput, errors.password && styles.inputError]}
-              placeholder="Min. 6 characters"
-              placeholderTextColor={COLORS.textLight}
-              value={form.password}
-              onChangeText={(v) => handleChange('password', v)}
-              onBlur={() => handleBlur('password')}
-              secureTextEntry={!showPassword}
-              returnKeyType="done"
-              onSubmitEditing={handleRegister}
+              placeholder="Full Name"
+              value={name}
+              onChangeText={(text) => {
+                setName(text);
+                if (nameError) setNameError("");
+              }}
+              style={[styles.input, nameError && styles.inputError]}
+              editable={!loading}
             />
+            {nameError ? (
+              <Text style={styles.errorText}>{nameError}</Text>
+            ) : null}
+
+            <TextInput
+              placeholder="Phone Number"
+              keyboardType="phone-pad"
+              value={phone}
+              onChangeText={(text) => {
+                setPhone(text);
+                if (phoneError) setPhoneError("");
+              }}
+              style={[styles.input, phoneError && styles.inputError]}
+              maxLength={11}
+              editable={!loading}
+            />
+            {phoneError ? (
+              <Text style={styles.errorText}>{phoneError}</Text>
+            ) : null}
+
+            <TextInput
+              placeholder="Password"
+              secureTextEntry
+              value={password}
+              onChangeText={(text) => {
+                setPassword(text);
+                if (passwordError) setPasswordError("");
+              }}
+              style={[styles.input, passwordError && styles.inputError]}
+              editable={!loading}
+            />
+            {passwordError ? (
+              <Text style={styles.errorText}>{passwordError}</Text>
+            ) : null}
+
+            <TextInput
+              placeholder="Confirm Password"
+              secureTextEntry
+              value={confirmPassword}
+              onChangeText={(text) => {
+                setConfirmPassword(text);
+                if (confirmPasswordError) setConfirmPasswordError("");
+              }}
+              style={[styles.input, confirmPasswordError && styles.inputError]}
+              editable={!loading}
+            />
+            {confirmPasswordError ? (
+              <Text style={styles.errorText}>{confirmPasswordError}</Text>
+            ) : null}
+
+            {/* REGISTER*/}
             <TouchableOpacity
-              style={styles.eyeBtn}
-              onPress={() => setShowPassword((p) => !p)}
+              style={[
+                styles.registerBtn,
+                loading && styles.registerBtnDisabled,
+              ]}
+              onPress={handleRegister}
+              disabled={loading}
             >
-              <Text style={styles.eyeIcon}>{showPassword ? '🙈' : '👁️'}</Text>
+              {loading ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <Text style={styles.btnText}>Create Account</Text>
+              )}
             </TouchableOpacity>
           </View>
-          {errors.password ? (
-            <Text style={styles.fieldError}>{errors.password}</Text>
-          ) : null}
-        </View>
 
-        {/* Submit */}
-        <PrimaryButton
-          title="Create Account"
-          onPress={handleRegister}
-          loading={loading}
-          style={styles.submitBtn}
-        />
-
-        {/* Login Link */}
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Already have an account? </Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-            <Text style={styles.footerLink}>Sign In</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+          {/* LOGIN  */}
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Already have an account? </Text>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <Text style={styles.link}>Sign In</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: COLORS.background },
-  container: { flex: 1 },
-  content: { padding: 24, paddingBottom: 40 },
-  header: { alignItems: 'center', marginBottom: 32, marginTop: 20 },
-  logo: { fontSize: 52, marginBottom: 12 },
+  container: {
+    flex: 1,
+    backgroundColor: "#F8FAFC",
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 40,
+  },
+
+  header: {
+    alignItems: "center",
+    marginBottom: 40,
+  },
+
+  appName: {
+    fontSize: 26,
+    fontWeight: "800",
+    color: "#D32F2F",
+    letterSpacing: 4,
+    marginBottom: 10,
+  },
+
   title: {
-    fontSize: SIZES.xxl,
-    fontWeight: '800',
-    color: COLORS.text,
-    marginBottom: 6,
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "#1E2937",
   },
+
   subtitle: {
-    fontSize: SIZES.sm,
-    color: COLORS.textSecondary,
-    textAlign: 'center',
+    fontSize: 15.5,
+    color: "#64748B",
+    marginTop: 8,
+    textAlign: "center",
   },
-  fieldGroup: { marginBottom: 18 },
-  label: {
-    fontSize: SIZES.sm,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: 6,
+
+  card: {
+    backgroundColor: "#fff",
+    padding: 24,
+    borderRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
   },
+
   input: {
-    backgroundColor: COLORS.white,
-    borderWidth: 1.5,
-    borderColor: COLORS.border,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
     borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 13,
-    fontSize: SIZES.md,
-    color: COLORS.text,
-    ...SHADOWS.card,
+    padding: 16,
+    fontSize: 16,
+    backgroundColor: "#FAFAFA",
+    marginBottom: 4,
   },
-  inputError: { borderColor: COLORS.danger },
-  passwordRow: { position: 'relative' },
-  passwordInput: { paddingRight: 50 },
-  eyeBtn: {
-    position: 'absolute',
-    right: 14,
-    top: 13,
+
+  inputError: {
+    borderColor: "#EF4444",
   },
-  eyeIcon: { fontSize: 18 },
-  fieldError: {
-    color: COLORS.danger,
-    fontSize: SIZES.xs,
-    marginTop: 4,
-    marginLeft: 2,
+
+  errorText: {
+    color: "#EF4444",
+    fontSize: 13,
+    marginBottom: 12,
+    marginLeft: 4,
   },
-  submitBtn: { marginTop: 8, marginBottom: 20 },
+
+  registerBtn: {
+    backgroundColor: "#D32F2F",
+    paddingVertical: 16,
+    borderRadius: 14,
+    alignItems: "center",
+    marginTop: 10,
+  },
+
+  registerBtnDisabled: {
+    backgroundColor: "#F87171",
+  },
+
+  btnText: {
+    color: "#fff",
+    fontSize: 17,
+    fontWeight: "bold",
+  },
+
   footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: 35,
   },
-  footerText: { color: COLORS.textSecondary, fontSize: SIZES.sm },
-  footerLink: {
-    color: COLORS.primary,
-    fontSize: SIZES.sm,
-    fontWeight: '700',
+
+  footerText: {
+    color: "#64748B",
+  },
+
+  link: {
+    color: "#002F6C",
+    fontWeight: "600",
   },
 });
-
-export default RegisterScreen;
