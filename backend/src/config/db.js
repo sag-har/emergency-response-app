@@ -2,7 +2,7 @@ const sql = require("mssql");
 
 const config = {
   user: process.env.DB_USER || "sa",
-  password: process.env.DB_PASSWORD || "admin123!",
+  password: process.env.DB_PASSWORD || "admin123@",
   // 🔥 Isay process.env.DB_SERVER se uthao, taake log apne mutabiq IP set kar sakein
   server: process.env.DB_SERVER || "127.0.0.1", 
   port: parseInt(process.env.DB_PORT) || 1433,
