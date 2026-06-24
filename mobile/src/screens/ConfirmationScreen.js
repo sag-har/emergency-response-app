@@ -28,34 +28,26 @@ export default function ConfirmationScreen({
         </Text>
 
         <Text style={styles.subtitle}>
-          Your emergency request has been
-          recorded and is awaiting response.
+          Your emergency request has been recorded and saved.
         </Text>
 
         <View style={styles.infoBox}>
-          <Text style={styles.label}>
-            Request ID
-          </Text>
-
-          <Text style={styles.value}>
-            {requestId}
-          </Text>
+          <Text style={styles.label}>Request ID</Text>
+          <Text style={styles.value}>{requestId}</Text>
         </View>
 
         <View style={styles.infoBox}>
-          <Text style={styles.label}>
-            Status
-          </Text>
-
-          <Text style={styles.status}>
-            {status}
-          </Text>
+          <Text style={styles.label}>Status</Text>
+          <Text style={styles.status}>{status}</Text>
         </View>
 
+        {/* HOME SCREEN B */}
         <TouchableOpacity
           style={styles.button}
           onPress={() =>
-            navigation.navigate("Home")
+            navigation.navigate("Main", {
+              screen: "Home",
+            })
           }
         >
           <Text style={styles.buttonText}>
@@ -63,10 +55,13 @@ export default function ConfirmationScreen({
           </Text>
         </TouchableOpacity>
 
+        {/* HISTORY TAB */}
         <TouchableOpacity
           style={styles.historyButton}
           onPress={() =>
-            navigation.navigate("History")
+            navigation.navigate("Main", {
+              screen: "History",
+            })
           }
         >
           <Text style={styles.historyText}>
@@ -158,7 +153,7 @@ const styles = StyleSheet.create({
   },
 
   historyButton: {
-    marginTop: 15,
+    marginTop: 18,
   },
 
   historyText: {

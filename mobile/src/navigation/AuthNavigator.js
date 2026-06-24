@@ -6,10 +6,7 @@ import HomeScreen from "../screens/HomeScreen";
 import LoginScreen from "../screens/LoginScreen";
 import RegisterScreen from "../screens/RegisterScreen";
 import MainNavigator from "./MainNavigator";
-<<<<<<< HEAD
-=======
 import ConfirmationScreen from "../screens/ConfirmationScreen";
->>>>>>> 758cba2 (Updated files and UI)
 
 const Stack = createNativeStackNavigator();
 
@@ -22,10 +19,7 @@ export default function AuthNavigator() {
           headerShown: false,
         }}
       >
-<<<<<<< HEAD
-=======
         {/* Authentication Screens */}
->>>>>>> 758cba2 (Updated files and UI)
         <Stack.Screen
           name="Home"
           component={HomeScreen}
@@ -41,23 +35,17 @@ export default function AuthNavigator() {
           component={RegisterScreen}
         />
 
-<<<<<<< HEAD
-=======
         {/* Main Application */}
->>>>>>> 758cba2 (Updated files and UI)
         <Stack.Screen
           name="Main"
           component={MainNavigator}
         />
-<<<<<<< HEAD
-=======
 
         {/* SOS Confirmation */}
         <Stack.Screen
           name="Confirmation"
           component={ConfirmationScreen}
         />
->>>>>>> 758cba2 (Updated files and UI)
       </Stack.Navigator>
     </NavigationContainer>
   );

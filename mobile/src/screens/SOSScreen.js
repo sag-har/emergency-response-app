@@ -33,15 +33,10 @@ export default function SOSScreen({ route, navigation }) {
     setLoading(true);
 
     setTimeout(() => {
-<<<<<<< HEAD
-      const emergencyData = {
-        id: Date.now().toString(),
-=======
       const requestId = `REQ-${Date.now()}`;
 
       const emergencyData = {
         id: requestId,
->>>>>>> 758cba2 (Updated files and UI)
         type: selectedType,
         notes,
         status: "Pending",
@@ -53,23 +48,11 @@ export default function SOSScreen({ route, navigation }) {
       setLoading(false);
       setNotes("");
 
-<<<<<<< HEAD
-      Alert.alert(
-        "SOS Submitted",
-        "Your emergency request has been recorded successfully.",
-        [
-          {
-            text: "OK",
-            onPress: () => navigation.goBack(),
-          },
-        ]
-      );
-=======
-      navigation.navigate("Confirmation", {
+      // IMPORTANT FIX
+      navigation.getParent()?.navigate("Confirmation", {
         requestId,
         status: "Pending",
       });
->>>>>>> 758cba2 (Updated files and UI)
     }, 1200);
   };
 
@@ -79,7 +62,6 @@ export default function SOSScreen({ route, navigation }) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 30 }}
       >
-        {/* HEADER */}
         <View style={styles.header}>
           <Text style={styles.heading}>
             Emergency SOS
@@ -90,7 +72,6 @@ export default function SOSScreen({ route, navigation }) {
           </Text>
         </View>
 
-        {/* TYPE */}
         <View style={styles.card}>
           <Text style={styles.label}>
             Emergency Type
@@ -103,14 +84,15 @@ export default function SOSScreen({ route, navigation }) {
           </View>
         </View>
 
-        {/* LOCATION */}
         <View style={styles.card}>
           <Text style={styles.label}>
             Current Location
           </Text>
           
           <View style={styles.locationBox}>
-            <Text style={styles.locationIcon}>📍</Text>
+            <Text style={styles.locationIcon}>
+              📍
+            </Text>
 
             <View>
               <Text style={styles.locationTitle}>
@@ -124,7 +106,6 @@ export default function SOSScreen({ route, navigation }) {
           </View>
         </View>
 
-        {/* NOTES */}
         <View style={styles.card}>
           <Text style={styles.label}>
             Emergency Details
@@ -140,19 +121,17 @@ export default function SOSScreen({ route, navigation }) {
           />
         </View>
 
-        {/* NOTICE */}
         <View style={styles.noticeCard}>
           <Text style={styles.noticeTitle}>
             ⚠ Emergency Notice
           </Text>
 
           <Text style={styles.noticeText}>
-            Submit requests only for real emergencies. False
-            alerts may delay assistance for people in need.
+            Submit requests only for real emergencies.
+            False alerts may delay assistance for people in need.
           </Text>
         </View>
 
-        {/* BUTTON */}
         <TouchableOpacity
           style={[
             styles.submitButton,
