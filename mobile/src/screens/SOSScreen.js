@@ -108,7 +108,7 @@ export default function SOSScreen({ route, navigation }) {
           <Text style={styles.label}>
             Current Location
           </Text>
-
+          
           <View style={styles.locationBox}>
             <Text style={styles.locationIcon}>📍</Text>
 
