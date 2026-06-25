@@ -12,27 +12,16 @@ import {
 } from "react-native";
 
 import { AppContext } from "../context/AppContext";
-import API from "../services/api";
 
 export default function SOSScreen({ route, navigation }) {
   const { addHistory } = useContext(AppContext);
 
-  const [selectedType, setSelectedType] = useState(
-    route?.params?.type || "Medical"
-  );
+  const selectedType = route?.params?.type || "General";
 
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const emergencyTypes = [
-    "Medical",
-    "Fire",
-    "Crime",
-    "Accident",
-    "General",
-  ];
-
-  const submitSOS = async () => {
+  const submitSOS = () => {
     if (!notes.trim()) {
       Alert.alert(
         "Missing Information",
@@ -41,117 +30,52 @@ export default function SOSScreen({ route, navigation }) {
       return;
     }
 
-    try {
-      setLoading(true);
+    setLoading(true);
 
-      const payload = {
-        emergencyType: selectedType,
-        notes,
-        location: {
-          lat: 0,
-          lng: 0,
-        },
-      };
-
-      const response = await API.post(
-        "/emergency",
-        payload
-      );
-
-      const requestData = response.data;
-
+    setTimeout(() => {
       const emergencyData = {
-        id:
-          requestData?.id ||
-          `REQ-${Date.now()}`,
+        id: `REQ-${Date.now()}`,
         type: selectedType,
         notes,
-        status:
-          requestData?.status ||
-          "Pending",
+        status: "Pending",
         time: new Date().toLocaleString(),
       };
 
       addHistory(emergencyData);
 
+      setLoading(false);
       setNotes("");
 
       navigation.navigate("Confirmation", {
-        requestId:
-          requestData?.id ||
-          emergencyData.id,
-        status:
-          requestData?.status ||
-          "Pending",
+        requestId: emergencyData.id,
+        status: emergencyData.status,
       });
-    } catch (error) {
-      Alert.alert(
-        "Submission Failed",
-        error?.response?.data?.message ||
-          "Unable to submit emergency request. Please try again."
-      );
-    } finally {
-      setLoading(false);
-    }
+    }, 1200);
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 30 }}
-      >
+      <ScrollView contentContainerStyle={{ paddingBottom: 30 }}>
         <View style={styles.header}>
-          <Text style={styles.heading}>
-            Emergency SOS
-          </Text>
-
+          <Text style={styles.heading}>Emergency SOS</Text>
           <Text style={styles.subHeading}>
             Provide emergency details for faster assistance.
           </Text>
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.label}>
-            Emergency Type
-          </Text>
+          <Text style={styles.label}>Emergency Type</Text>
 
-          <View style={styles.typeContainer}>
-            {emergencyTypes.map((type) => (
-              <TouchableOpacity
-                key={type}
-                style={[
-                  styles.typeButton,
-                  selectedType === type &&
-                    styles.selectedTypeButton,
-                ]}
-                onPress={() =>
-                  setSelectedType(type)
-                }
-              >
-                <Text
-                  style={[
-                    styles.typeButtonText,
-                    selectedType === type &&
-                      styles.selectedTypeButtonText,
-                  ]}
-                >
-                  {type}
-                </Text>
-              </TouchableOpacity>
-            ))}
+          <View style={styles.typeBox}>
+            <Text style={styles.typeText}>{selectedType}</Text>
           </View>
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.label}>
-            Current Location
-          </Text>
+          <Text style={styles.label}>Current Location</Text>
 
           <View style={styles.locationBox}>
-            <Text style={styles.locationIcon}>
-              📍
-            </Text>
+            <Text style={styles.locationIcon}>📍</Text>
 
             <View>
               <Text style={styles.locationTitle}>
@@ -166,13 +90,10 @@ export default function SOSScreen({ route, navigation }) {
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.label}>
-            Emergency Details
-          </Text>
+          <Text style={styles.label}>Emergency Details</Text>
 
           <TextInput
             placeholder="Describe your emergency situation..."
-            placeholderTextColor="#94A3B8"
             multiline
             value={notes}
             onChangeText={setNotes}
@@ -180,36 +101,13 @@ export default function SOSScreen({ route, navigation }) {
           />
         </View>
 
-        <View style={styles.noticeCard}>
-          <Text style={styles.noticeTitle}>
-            ⚠ Emergency Notice
-          </Text>
-
-          <Text style={styles.noticeText}>
-            Submit requests only for real emergencies.
-            False alerts may delay assistance for people in need.
-          </Text>
-        </View>
-
         <TouchableOpacity
-          style={[
-            styles.submitButton,
-            loading && { opacity: 0.7 },
-          ]}
+          style={styles.submitButton}
           disabled={loading}
           onPress={submitSOS}
         >
           {loading ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator
-                size="small"
-                color="#FFFFFF"
-              />
-
-              <Text style={styles.submitText}>
-                Submitting...
-              </Text>
-            </View>
+            <ActivityIndicator color="#fff" />
           ) : (
             <Text style={styles.submitText}>
               Submit SOS Alert
@@ -228,64 +126,42 @@ const styles = StyleSheet.create({
   },
 
   header: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    marginBottom: 20,
+    padding: 20,
   },
 
   heading: {
-    fontSize: 30,
+    fontSize: 28,
     fontWeight: "bold",
-    color: "#0F172A",
   },
 
   subHeading: {
     color: "#64748B",
-    marginTop: 6,
-    fontSize: 15,
+    marginTop: 5,
   },
 
   card: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#fff",
     marginHorizontal: 20,
     marginBottom: 15,
+    borderRadius: 16,
     padding: 18,
-    borderRadius: 18,
     elevation: 3,
   },
 
   label: {
-    fontSize: 15,
     fontWeight: "700",
-    color: "#0F172A",
     marginBottom: 12,
   },
 
-  typeContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-  },
-
-  typeButton: {
-    backgroundColor: "#F1F5F9",
-    paddingVertical: 10,
-    paddingHorizontal: 15,
+  typeBox: {
+    backgroundColor: "#FEE2E2",
+    padding: 14,
     borderRadius: 12,
-    marginRight: 10,
-    marginBottom: 10,
   },
 
-  selectedTypeButton: {
-    backgroundColor: "#D62828",
-  },
-
-  typeButtonText: {
-    color: "#334155",
-    fontWeight: "600",
-  },
-
-  selectedTypeButtonText: {
-    color: "#FFFFFF",
+  typeText: {
+    color: "#D62828",
+    fontWeight: "bold",
   },
 
   locationBox: {
@@ -295,66 +171,36 @@ const styles = StyleSheet.create({
 
   locationIcon: {
     fontSize: 28,
-    marginRight: 12,
+    marginRight: 10,
   },
 
   locationTitle: {
-    fontWeight: "700",
-    color: "#0F172A",
+    fontWeight: "bold",
   },
 
   locationText: {
     color: "#64748B",
-    marginTop: 3,
   },
 
   textArea: {
     minHeight: 140,
     backgroundColor: "#F8FAFC",
-    borderRadius: 14,
+    borderRadius: 12,
     padding: 15,
     textAlignVertical: "top",
-    color: "#0F172A",
-  },
-
-  noticeCard: {
-    backgroundColor: "#FEF3C7",
-    marginHorizontal: 20,
-    marginBottom: 20,
-    padding: 16,
-    borderRadius: 16,
-  },
-
-  noticeTitle: {
-    color: "#92400E",
-    fontWeight: "700",
-    marginBottom: 6,
-  },
-
-  noticeText: {
-    color: "#92400E",
-    lineHeight: 20,
   },
 
   submitButton: {
     backgroundColor: "#D62828",
     marginHorizontal: 20,
     padding: 18,
-    borderRadius: 18,
+    borderRadius: 16,
     alignItems: "center",
-    elevation: 6,
-  },
-
-  loadingContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
   },
 
   submitText: {
-    color: "#FFFFFF",
+    color: "#fff",
+    fontSize: 16,
     fontWeight: "bold",
-    fontSize: 17,
-    marginLeft: 8,
   },
 });
