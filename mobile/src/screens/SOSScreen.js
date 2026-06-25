@@ -12,16 +12,27 @@ import {
 } from "react-native";
 
 import { AppContext } from "../context/AppContext";
+import API from "../services/api";
 
 export default function SOSScreen({ route, navigation }) {
   const { addHistory } = useContext(AppContext);
 
-  const selectedType = route?.params?.type || "General";
+  const [selectedType, setSelectedType] = useState(
+    route?.params?.type || "Medical"
+  );
 
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const submitSOS = () => {
+  const emergencyTypes = [
+    "Medical",
+    "Fire",
+    "Crime",
+    "Accident",
+    "General",
+  ];
+
+  const submitSOS = async () => {
     if (!notes.trim()) {
       Alert.alert(
         "Missing Information",
@@ -30,30 +41,58 @@ export default function SOSScreen({ route, navigation }) {
       return;
     }
 
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    setTimeout(() => {
-      const requestId = `REQ-${Date.now()}`;
+      const payload = {
+        emergencyType: selectedType,
+        notes,
+        location: {
+          lat: 0,
+          lng: 0,
+        },
+      };
+
+      const response = await API.post(
+        "/emergency",
+        payload
+      );
+
+      const requestData = response.data;
 
       const emergencyData = {
-        id: requestId,
+        id:
+          requestData?.id ||
+          `REQ-${Date.now()}`,
         type: selectedType,
         notes,
-        status: "Pending",
+        status:
+          requestData?.status ||
+          "Pending",
         time: new Date().toLocaleString(),
       };
 
       addHistory(emergencyData);
 
-      setLoading(false);
       setNotes("");
 
-      // IMPORTANT FIX
-      navigation.getParent()?.navigate("Confirmation", {
-        requestId,
-        status: "Pending",
+      navigation.navigate("Confirmation", {
+        requestId:
+          requestData?.id ||
+          emergencyData.id,
+        status:
+          requestData?.status ||
+          "Pending",
       });
-    }, 1200);
+    } catch (error) {
+      Alert.alert(
+        "Submission Failed",
+        error?.response?.data?.message ||
+          "Unable to submit emergency request. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -77,10 +116,30 @@ export default function SOSScreen({ route, navigation }) {
             Emergency Type
           </Text>
 
-          <View style={styles.typeBox}>
-            <Text style={styles.typeText}>
-              {selectedType}
-            </Text>
+          <View style={styles.typeContainer}>
+            {emergencyTypes.map((type) => (
+              <TouchableOpacity
+                key={type}
+                style={[
+                  styles.typeButton,
+                  selectedType === type &&
+                    styles.selectedTypeButton,
+                ]}
+                onPress={() =>
+                  setSelectedType(type)
+                }
+              >
+                <Text
+                  style={[
+                    styles.typeButtonText,
+                    selectedType === type &&
+                      styles.selectedTypeButtonText,
+                  ]}
+                >
+                  {type}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
 
@@ -88,7 +147,7 @@ export default function SOSScreen({ route, navigation }) {
           <Text style={styles.label}>
             Current Location
           </Text>
-          
+
           <View style={styles.locationBox}>
             <Text style={styles.locationIcon}>
               📍
@@ -100,7 +159,7 @@ export default function SOSScreen({ route, navigation }) {
               </Text>
 
               <Text style={styles.locationText}>
-                GPS integration will be connected in Phase 2
+                GPS integration coming in Phase 2
               </Text>
             </View>
           </View>
@@ -202,16 +261,31 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
 
-  typeBox: {
-    backgroundColor: "#FEE2E2",
-    padding: 14,
-    borderRadius: 12,
+  typeContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
   },
 
-  typeText: {
-    color: "#D62828",
-    fontSize: 16,
-    fontWeight: "700",
+  typeButton: {
+    backgroundColor: "#F1F5F9",
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 12,
+    marginRight: 10,
+    marginBottom: 10,
+  },
+
+  selectedTypeButton: {
+    backgroundColor: "#D62828",
+  },
+
+  typeButtonText: {
+    color: "#334155",
+    fontWeight: "600",
+  },
+
+  selectedTypeButtonText: {
+    color: "#FFFFFF",
   },
 
   locationBox: {
@@ -274,6 +348,7 @@ const styles = StyleSheet.create({
   loadingContainer: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
   },
 
   submitText: {

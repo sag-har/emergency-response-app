@@ -1,0 +1,22 @@
+# Dependency folders
+node_modules/
+**/node_modules/
+
+# Environment files (Very Important!)
+.env
+.env.local
+.env.development
+.env.production
+
+# IDE and System files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Build and temporary outputs
+backend/dist/
+backend/build/
+mobile/.expo/
+mobile/android/build/
+mobile/ios/build/

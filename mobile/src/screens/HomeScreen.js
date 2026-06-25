@@ -55,7 +55,7 @@ export default function HomeScreen({ navigation }) {
         </View>
       </View>
 
-      {/* LOGIN / REGISTER SECTION  */}
+      {/* LOGIN /  */}
       <View style={styles.bottomBox}>
         <Text style={styles.bottomText}>Get started to continue</Text>
 

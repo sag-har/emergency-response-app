@@ -19,7 +19,17 @@ mobile/
 │   │   ├── HomeScreen.js
 │   │   ├── LoginScreen.js
 │   │   └── RegisterScreen.js
+│   │   └── Profilescreen.js
 │   │
+│   ├── services/
+│   │   ├── api.js
+|   |
+│   ├── storage/
+│   │   ├── authstorage.js
+|   |
+│   ├── utils/
+│   │   ├── validation.js
+|   |
 │   ├── navigation/
 │   │   └── AuthNavigator.js
 │   │

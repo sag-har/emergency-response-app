@@ -1,11 +1,18 @@
 import React from 'react';
-import AuthNavigator from './src/navigation/AuthNavigator';
+import { NavigationContainer } from '@react-navigation/native';
+import { AuthProvider } from './src/context/AuthContext';
 import AppProvider from "./src/context/AppContext";
+import AuthNavigator from './src/navigation/AuthNavigator';
 
 export default function App() {
   return (
-    <AppProvider>
-      <AuthNavigator />
-    </AppProvider>
+    <AuthProvider>
+      <AppProvider>
+        <NavigationContainer>
+          {/* 🔥 Yeh AuthNavigator ab tumhari Login, Register aur MainNavigator (Tabs) sab ko khud handle karega */}
+          <AuthNavigator />
+        </NavigationContainer>
+      </AppProvider>
+    </AuthProvider>
   );
 }
