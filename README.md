@@ -2,7 +2,7 @@
 
 A modern **React Native (Expo)** mobile application developed as part of the **Friendsware Solutions Summer Internship 2026 – Track B (Mobile Application)**.
 
-The application provides a clean and intuitive emergency response interface where users can access emergency services, submit SOS requests, view their emergency history, and manage their profile.
+The application provides a clean and intuitive emergency response interface where users can access emergency services, submit SOS requests, track emergency requests, view request history, and manage their profile.
 
 ---
 
@@ -12,87 +12,45 @@ The application provides a clean and intuitive emergency response interface wher
 
 * User Registration
 * User Login
-* Secure navigation flow
+* Secure Navigation Flow
+* JWT Authentication Ready
+* Protected Routes (Phase 2)
+
+---
 
 ## 🏠 Home Dashboard
 
 * Modern emergency dashboard
 * Large SOS emergency button
-* Quick Action cards
+* Quick Action cards:
 
   * 🚑 Medical
   * 🔥 Fire
   * 🚔 Crime
   * 🚗 Accident
-
-## 🚨 SOS Module
-
-* One tap SOS access
-* Emergency type selection
-* Additional notes input
-* SOS submission confirmation
-
-## 📜 History
-
-* Displays previously submitted emergency requests
-* Stores emergency type, notes, and submission time
-* Latest requests displayed first
-
-## 👤 Profile
-
-* Displays logged in user information
-* User name
-* Email address
-* Prepared for backend integration
-
-## 🎨 User Interface
-
-* Responsive React Native design
-* Consistent spacing and typography
-* Emergency themed color palette
-* Mobile friendly navigation
-* Clean card based layout
+* Emergency request shortcuts
 
 ---
 
 # 🛠️ Technologies Used
 
+## Frontend
+
 * React Native
 * Expo
 * React Navigation
-* JavaScript (ES6+)
 * Context API
-* AsyncStorage (planned)
-* Node.js Backend (integration ready)
+* AsyncStorage
+* Axios
+* JavaScript (ES6+)
 
----
+## Backend Integration
 
-# 📂 Project Structure
-
-```
-src/
-│
-├── components/
-├── context/
-│   └── AppContext.js
-│
-├── navigation/
-│   ├── AuthNavigator.js
-│   └── MainNavigator.js
-│
-├── screens/
-│   ├── HomeScreen.js
-│   ├── LoginScreen.js
-│   ├── RegisterScreen.js
-│   ├── HomeScreenB.js
-│   ├── SOSScreen.js
-│   ├── HistoryScreen.js
-│   └── ProfileScreen.js
-│
-├── services/
-├── styles/
-└── utils/
-```
+* Node.js
+* Express.js
+* SQL Server
+* JWT Authentication
+* REST API
 
 ---
 
@@ -116,10 +74,17 @@ Install dependencies:
 npm install
 ```
 
+Install required packages:
+
+```bash
+npm install axios
+npm install @react-native-async-storage/async-storage --legacy-peer-deps
+```
+
 Start Expo:
 
 ```bash
-npx expo start
+npx expo start -c
 ```
 
 Run the application using:
@@ -130,72 +95,17 @@ Run the application using:
 
 ---
 
-# 📌 Application Flow
-
-```
-Landing Screen
-        │
-        ▼
- Login Screen
-        │
-        ▼
-Main Dashboard
-        │
- ┌──────┼───────────────┐
- │      │               │
- ▼      ▼               ▼
-Home  History        Profile
- │
- ▼
-SOS Button / Quick Actions
- │
- ▼
-SOS Form
- │
- ▼
-Submit Emergency
- │
- ▼
-History Updated
-```
-
----
-
 # 🧪 Test Cases (Member B)
 
-| Test Case ID | Scenario                                      | Expected Result                                  | Status |
-| ------------ | --------------------------------------------- | ------------------------------------------------ | ------ |
-| TC-01        | User taps **Medical** quick action            | SOS screen opens with Medical emergency selected | ✅ Pass |
-| TC-02        | User taps **Fire** quick action               | SOS screen opens with Fire emergency selected    | ✅ Pass |
-| TC-03        | User presses **SOS** button and submits notes | Emergency request is submitted successfully      | ✅ Pass |
-| TC-04        | User submits an SOS request                   | Submitted request appears in the History screen  | ✅ Pass |
-| TC-05        | Logged in user opens Profile                  | Correct user information is displayed            | ✅ Pass |
-
----
-
-# 🎯 Future Improvements
-
-* GPS location sharing
-* Real time emergency tracking
-* Nearby hospital finder
-* Emergency contact management
-* Push notifications
-* Backend API integration
-* Persistent history using AsyncStorage or database
-* Cloud synchronization
-
----
-
-# 👨‍💻 Member B Responsibilities
-
-* Bottom Tab Navigation
-* Home Dashboard
-* SOS Screen
-* Emergency Quick Actions
-* History Screen
-* Profile Screen
-* UI/UX Design
-* Navigation & SOS Test Cases
+| Test Case ID | Scenario                       | Expected Result                        | Status |
+| ------------ | ------------------------------ | -------------------------------------- | ------ |
+| TC-01        | User taps Medical quick action | SOS screen opens with Medical selected | ✅ Pass |
+| TC-02        | User submits empty notes       | Validation error displayed             | ✅ Pass |
+| TC-03        | User submits SOS request       | Request successfully created           | ✅ Pass |
+| TC-04        | API request fails              | User friendly error message displayed  | ✅ Pass |
+| TC-05        | User opens History screen      | Previous requests displayed            | ✅ Pass |
+| TC-06        | No emergency requests exist    | Empty state shown                      | ✅ Pass |
+| TC-07        | Request submitted successfully | Confirmation screen displayed          | ✅ Pass |
 
 ---
 
