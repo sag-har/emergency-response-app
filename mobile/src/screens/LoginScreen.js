@@ -18,9 +18,6 @@ export default function LoginScreen({ navigation }) {
   const [password, setPassword] = useState("");
 
   const handleLogin = () => {
-    // Temporary login
-    // Later Member A will connect this to backend API
-
     setUser({
       name: "Sana Batool",
       email: email || "sanabatool863@gmail.com",
