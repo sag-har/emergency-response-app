@@ -1,8 +1,9 @@
-import React, { useEffect, useState, useLayoutEffect } from "react";
+import React, { useCallback, useState, useLayoutEffect } from "react";
 import { SafeAreaView, View, Text, TouchableOpacity, StyleSheet, StatusBar, ActivityIndicator, Alert, ScrollView, Dimensions, } 
 from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 
-import { getToken, removeToken } from "../storage/authStorage";
+import { clearAuth, hasValidSession } from "../storage/authStorage";
 
 const { width } = Dimensions.get("window");
 
@@ -10,9 +11,27 @@ export default function HomeScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
+  const checkAuth = async () => {
+    try {
+      const sessionIsValid = await hasValidSession();
+      setIsLoggedIn(sessionIsValid);
+
+      if (!sessionIsValid) {
+        navigation.replace("Login");
+      }
+    } catch (error) {
+      console.error("Auth check failed:", error);
+      navigation.replace("Login");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      checkAuth();
+    }, [navigation])
+  );
 
   // Navbar
   useLayoutEffect(() => {
@@ -45,17 +64,6 @@ export default function HomeScreen({ navigation }) {
     });
   }, [navigation, isLoggedIn]);
 
-  const checkAuth = async () => {
-    try {
-      const token = await getToken();
-      setIsLoggedIn(!!token);
-    } catch (error) {
-      console.error("Auth check failed:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleLogout = () => {
     Alert.alert(
       "Logout",
@@ -66,9 +74,9 @@ export default function HomeScreen({ navigation }) {
           text: "Logout",
           style: "destructive",
           onPress: async () => {
-            await removeToken();
+            await clearAuth();
             setIsLoggedIn(false);
-            navigation.replace("Home");
+            navigation.replace("Login");
           },
         },
       ]

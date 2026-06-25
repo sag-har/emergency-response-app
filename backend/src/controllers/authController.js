@@ -3,12 +3,24 @@ const { sql } = require("../config/db");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 
+const buildAuthToken = (user) => {
+  return jwt.sign(
+    {
+      id: user.id,
+      phone: user.phone,
+    },
+    process.env.JWT_SECRET || "SUPER_SECRET_KEY_123",
+    {
+      expiresIn: "7d",
+    }
+  );
+};
+
 const registerUser = async (req, res) => {
   try {
     const { name, phone, password } = req.body;
 
-    // 🔥 Strict validation taake khali ya undefined strings DB tak na jayein
-    if (!name || !phone || !password || phone.trim() === "" || password.trim() === "") {
+    if (!name || !phone || !password || name.trim() === "" || phone.trim() === "" || password.trim() === "") {
       return res.status(400).json({
         success: false,
         message: "All fields are required and cannot be empty",
@@ -16,8 +28,22 @@ const registerUser = async (req, res) => {
     }
 
     const cleanPhone = phone.trim();
+    const cleanName = name.trim();
 
-    // 1. Column matched with DB structure 'phone_number'
+    if (!/^\d{11}$/.test(cleanPhone)) {
+      return res.status(400).json({
+        success: false,
+        message: "Phone number must be 11 digits",
+      });
+    }
+
+    if (password.trim().length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 6 characters",
+      });
+    }
+
     const existingUser = await sql.query`
       SELECT * FROM [users]
       WHERE phone_number = ${cleanPhone}
@@ -33,17 +59,25 @@ const registerUser = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password.trim(), 10);
     const userId = crypto.randomUUID();
 
-    // 2. Insert clean data explicitly
     await sql.query`
       INSERT INTO [users]
       (id, full_name, phone_number, password_hash)
       VALUES
-      (${userId}, ${name.trim()}, ${cleanPhone}, ${hashedPassword})
+      (${userId}, ${cleanName}, ${cleanPhone}, ${hashedPassword})
     `;
+
+    const user = {
+      id: userId,
+      name: cleanName,
+      phone: cleanPhone,
+    };
+    const token = buildAuthToken(user);
 
     res.status(201).json({
       success: true,
       message: "User registered successfully",
+      token,
+      user,
     });
 
   } catch (error) {
@@ -68,7 +102,6 @@ const loginUser = async (req, res) => {
 
     const cleanPhone = phone.trim();
 
-    // 3. Explicitly fetching using cleaned string
     const result = await sql.query`
       SELECT * FROM [users]
       WHERE phone_number = ${cleanPhone}
@@ -83,7 +116,6 @@ const loginUser = async (req, res) => {
 
     const user = result.recordset[0];
 
-    // 4. Verification using database snake_case keys
     const isMatch = await bcrypt.compare(
       password.trim(),
       user.password_hash
@@ -96,28 +128,18 @@ const loginUser = async (req, res) => {
       });
     }
 
-    // 5. JWT payload updated to use exact database properties
-    const token = jwt.sign(
-      {
-        id: user.id,
-        phone: user.phone_number,
-      },
-      process.env.JWT_SECRET || "SUPER_SECRET_KEY_123",
-      {
-        expiresIn: "7d",
-      }
-    );
+    const responseUser = {
+      id: user.id,
+      name: user.full_name,
+      phone: user.phone_number,
+    };
+    const token = buildAuthToken(responseUser);
 
-    // 6. Response properties aligned with database response keys
     res.status(200).json({
       success: true,
       message: "Login successful",
       token,
-      user: {
-        id: user.id,
-        name: user.full_name,
-        phone: user.phone_number,
-      },
+      user: responseUser,
     });
 
   } catch (error) {

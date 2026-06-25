@@ -3,7 +3,7 @@ import { SafeAreaView, View, Text, TextInput, TouchableOpacity, StyleSheet, Stat
 from "react-native";
 
 import API from "../services/api";
-import { saveToken } from "../storage/authStorage";
+import { saveToken, saveUser } from "../storage/authStorage";
 
 export default function LoginScreen({ navigation }) {
   const [phone, setPhone] = useState("");
@@ -19,18 +19,21 @@ export default function LoginScreen({ navigation }) {
     setPhoneError("");
     setPasswordError("");
 
-    if (!phone.trim()) {
+    const cleanPhone = phone.trim();
+    const cleanPassword = password.trim();
+
+    if (!cleanPhone) {
       setPhoneError("Please fill this field");
       isValid = false;
-    } else if (phone.length < 11) {
+    } else if (!/^\d{11}$/.test(cleanPhone)) {
       setPhoneError("Phone number must be 11 digits");
       isValid = false;
     }
 
-    if (!password.trim()) {
+    if (!cleanPassword) {
       setPasswordError("Please fill this field");
       isValid = false;
-    } else if (password.length < 6) {
+    } else if (cleanPassword.length < 6) {
       setPasswordError("Password must be at least 6 characters");
       isValid = false;
     }
@@ -44,33 +47,22 @@ export default function LoginScreen({ navigation }) {
   setLoading(true);
 
   try {
-    console.log("Attempting login with:", { phone });
-
     const response = await API.post("/auth/login", {
       phone,
-      password,
+      password: password.trim(),
     });
-
-    console.log("Login Response:", response.data);
 
     if (response?.data?.token && response?.data?.user) {
       const { token, user } = response.data;
 
       await saveToken(token);
-
-      // Save user 
-      await AsyncStorage.setItem("user", JSON.stringify(user));
+      await saveUser(user);
 
       Alert.alert("Login Successful", "Welcome back!", [
         {
           text: "Continue",
           onPress: () => {
-            // Role-based navigation
-            if (user.role === "admin") {
-              navigation.replace("AdminHome"); 
-            } else {
-              navigation.replace("Profile"); 
-            }
+            navigation.replace("Home");
           },
         },
       ]);
@@ -123,7 +115,7 @@ export default function LoginScreen({ navigation }) {
               keyboardType="phone-pad"
               value={phone}
               onChangeText={(text) => {
-                setPhone(text);
+                setPhone(text.replace(/\D/g, ""));
                 if (phoneError) setPhoneError(""); 
               }}
               style={[styles.input, phoneError && styles.inputError]}
