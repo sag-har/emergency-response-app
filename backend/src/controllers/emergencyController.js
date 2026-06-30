@@ -70,4 +70,27 @@ const getEmergencyRequestById = async (req, res) => {
   }
 };
 
-module.exports = { createEmergencyRequest, getEmergencyRequestById };
+const getEmergencyRequestsByUserId = async (req, res) => {
+  try {
+    const { userId } = req.query; // ?userId=... se value nikalna
+
+    if (!userId) {
+      return res.status(400).json({ success: false, message: "userId query parameter is required" });
+    }
+
+    const result = await sql.query`
+      SELECT * FROM [emergency_requests] WHERE user_id = ${userId} ORDER BY created_at DESC
+    `;
+
+    res.status(200).json({
+      success: true,
+      count: result.recordset.length,
+      data: result.recordset,
+    });
+  } catch (error) {
+    console.error("Get User Emergencies Error:", error);
+    res.status(500).json({ success: false, message: "Server Error retrieving requests" });
+  }
+};
+
+module.exports = { createEmergencyRequest, getEmergencyRequestById, getEmergencyRequestsByUserId };

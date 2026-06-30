@@ -35,6 +35,10 @@ export default function SOSScreen({ route, navigation }) {
     setTimeout(() => {
       const requestId = `REQ-${Date.now()}`;
 
+<<<<<<< HEAD
+=======
+      // 🔥 Content Cleaned: Duplication and git conflict markers removed completely
+>>>>>>> feature/backend-core
       const emergencyData = {
         id: requestId,
         type: selectedType,
@@ -48,6 +52,20 @@ export default function SOSScreen({ route, navigation }) {
       setLoading(false);
       setNotes("");
 
+<<<<<<< HEAD
+=======
+      Alert.alert(
+        "SOS Submitted",
+        "Your emergency request has been recorded successfully.",
+        [
+          {
+            text: "OK",
+            onPress: () => navigation.goBack(),
+          },
+        ]
+      );
+      
+>>>>>>> feature/backend-core
       navigation.navigate("Confirmation", {
         requestId,
         status: "Pending",
@@ -63,10 +81,14 @@ export default function SOSScreen({ route, navigation }) {
       >
         {/* HEADER */}
         <View style={styles.header}>
+<<<<<<< HEAD
           <Text style={styles.heading}>
             Emergency SOS
           </Text>
 
+=======
+          <Text style={styles.heading}>Emergency SOS</Text>
+>>>>>>> feature/backend-core
           <Text style={styles.subHeading}>
             Provide emergency details for faster assistance.
           </Text>
@@ -74,6 +96,7 @@ export default function SOSScreen({ route, navigation }) {
 
         {/* TYPE */}
         <View style={styles.card}>
+<<<<<<< HEAD
           <Text style={styles.label}>
             Emergency Type
           </Text>
@@ -82,11 +105,17 @@ export default function SOSScreen({ route, navigation }) {
             <Text style={styles.typeText}>
               {selectedType}
             </Text>
+=======
+          <Text style={styles.label}>Emergency Type</Text>
+          <View style={styles.typeBox}>
+            <Text style={styles.typeText}>{selectedType}</Text>
+>>>>>>> feature/backend-core
           </View>
         </View>
 
         {/* LOCATION */}
         <View style={styles.card}>
+<<<<<<< HEAD
           <Text style={styles.label}>
             Current Location
           </Text>
@@ -99,6 +128,13 @@ export default function SOSScreen({ route, navigation }) {
                 Location Available
               </Text>
 
+=======
+          <Text style={styles.label}>Current Location</Text>
+          <View style={styles.locationBox}>
+            <Text style={styles.locationIcon}>📍</Text>
+            <View>
+              <Text style={styles.locationTitle}>Location Available</Text>
+>>>>>>> feature/backend-core
               <Text style={styles.locationText}>
                 GPS integration will be connected in Phase 2
               </Text>
@@ -108,10 +144,14 @@ export default function SOSScreen({ route, navigation }) {
 
         {/* NOTES */}
         <View style={styles.card}>
+<<<<<<< HEAD
           <Text style={styles.label}>
             Emergency Details
           </Text>
 
+=======
+          <Text style={styles.label}>Emergency Details</Text>
+>>>>>>> feature/backend-core
           <TextInput
             placeholder="Describe your emergency situation..."
             placeholderTextColor="#94A3B8"
@@ -124,6 +164,7 @@ export default function SOSScreen({ route, navigation }) {
 
         {/* NOTICE */}
         <View style={styles.noticeCard}>
+<<<<<<< HEAD
           <Text style={styles.noticeTitle}>
             ⚠ Emergency Notice
           </Text>
@@ -131,20 +172,31 @@ export default function SOSScreen({ route, navigation }) {
           <Text style={styles.noticeText}>
             Submit requests only for real emergencies. False
             alerts may delay assistance for people in need.
+=======
+          <Text style={styles.noticeTitle}>⚠ Emergency Notice</Text>
+          <Text style={styles.noticeText}>
+            Submit requests only for real emergencies. False alerts may delay
+            assistance for people in need.
+>>>>>>> feature/backend-core
           </Text>
         </View>
 
         {/* BUTTON */}
         <TouchableOpacity
+<<<<<<< HEAD
           style={[
             styles.submitButton,
             loading && { opacity: 0.7 },
           ]}
+=======
+          style={[styles.submitButton, loading && { opacity: 0.7 }]}
+>>>>>>> feature/backend-core
           disabled={loading}
           onPress={submitSOS}
         >
           {loading ? (
             <View style={styles.loadingContainer}>
+<<<<<<< HEAD
               <ActivityIndicator
                 size="small"
                 color="#FFFFFF"
@@ -158,6 +210,13 @@ export default function SOSScreen({ route, navigation }) {
             <Text style={styles.submitText}>
               Submit SOS Alert
             </Text>
+=======
+              <ActivityIndicator size="small" color="#FFFFFF" />
+              <Text style={styles.submitText}>Submitting...</Text>
+            </View>
+          ) : (
+            <Text style={styles.submitText}>Submit SOS Alert</Text>
+>>>>>>> feature/backend-core
           )}
         </TouchableOpacity>
       </ScrollView>
@@ -170,25 +229,37 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F8FAFC",
   },
+<<<<<<< HEAD
 
+=======
+>>>>>>> feature/backend-core
   header: {
     paddingHorizontal: 20,
     paddingTop: 20,
     marginBottom: 20,
   },
+<<<<<<< HEAD
 
+=======
+>>>>>>> feature/backend-core
   heading: {
     fontSize: 30,
     fontWeight: "bold",
     color: "#0F172A",
   },
+<<<<<<< HEAD
 
+=======
+>>>>>>> feature/backend-core
   subHeading: {
     color: "#64748B",
     marginTop: 6,
     fontSize: 15,
   },
+<<<<<<< HEAD
 
+=======
+>>>>>>> feature/backend-core
   card: {
     backgroundColor: "#FFFFFF",
     marginHorizontal: 20,
@@ -197,46 +268,70 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     elevation: 3,
   },
+<<<<<<< HEAD
 
+=======
+>>>>>>> feature/backend-core
   label: {
     fontSize: 15,
     fontWeight: "700",
     color: "#0F172A",
     marginBottom: 12,
   },
+<<<<<<< HEAD
 
+=======
+>>>>>>> feature/backend-core
   typeBox: {
     backgroundColor: "#FEE2E2",
     padding: 14,
     borderRadius: 12,
   },
+<<<<<<< HEAD
 
+=======
+>>>>>>> feature/backend-core
   typeText: {
     color: "#D62828",
     fontSize: 16,
     fontWeight: "700",
   },
+<<<<<<< HEAD
 
+=======
+>>>>>>> feature/backend-core
   locationBox: {
     flexDirection: "row",
     alignItems: "center",
   },
+<<<<<<< HEAD
 
+=======
+>>>>>>> feature/backend-core
   locationIcon: {
     fontSize: 28,
     marginRight: 12,
   },
+<<<<<<< HEAD
 
+=======
+>>>>>>> feature/backend-core
   locationTitle: {
     fontWeight: "700",
     color: "#0F172A",
   },
+<<<<<<< HEAD
 
+=======
+>>>>>>> feature/backend-core
   locationText: {
     color: "#64748B",
     marginTop: 3,
   },
+<<<<<<< HEAD
 
+=======
+>>>>>>> feature/backend-core
   textArea: {
     minHeight: 140,
     backgroundColor: "#F8FAFC",
@@ -245,7 +340,10 @@ const styles = StyleSheet.create({
     textAlignVertical: "top",
     color: "#0F172A",
   },
+<<<<<<< HEAD
 
+=======
+>>>>>>> feature/backend-core
   noticeCard: {
     backgroundColor: "#FEF3C7",
     marginHorizontal: 20,
@@ -253,18 +351,27 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 16,
   },
+<<<<<<< HEAD
 
+=======
+>>>>>>> feature/backend-core
   noticeTitle: {
     color: "#92400E",
     fontWeight: "700",
     marginBottom: 6,
   },
+<<<<<<< HEAD
 
+=======
+>>>>>>> feature/backend-core
   noticeText: {
     color: "#92400E",
     lineHeight: 20,
   },
+<<<<<<< HEAD
 
+=======
+>>>>>>> feature/backend-core
   submitButton: {
     backgroundColor: "#D62828",
     marginHorizontal: 20,
@@ -273,12 +380,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     elevation: 6,
   },
+<<<<<<< HEAD
 
+=======
+>>>>>>> feature/backend-core
   loadingContainer: {
     flexDirection: "row",
     alignItems: "center",
   },
+<<<<<<< HEAD
 
+=======
+>>>>>>> feature/backend-core
   submitText: {
     color: "#FFFFFF",
     fontWeight: "bold",
