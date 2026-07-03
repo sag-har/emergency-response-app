@@ -2,7 +2,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage'; // 🔥 Yeh line add ki hai
 
 const API = axios.create({
-  baseURL: 'http://localhost:5000/api', // Ya jo bhi tumhara backend URL hai
+  BASE_URL: "https://untaken-excusable-announcer.ngrok-free.dev/api", // Ya jo bhi tumhara backend URL hai
 });
 
 // attach token 
