@@ -2,8 +2,9 @@ name: Android Offline APK Build
 on:
   push:
     branches:
-      - feature/backend-core # Tumhaari active branch ka naam
-
+      - main
+      - feature/backend-core
+  workflow_dispatch: # <--- Yeh line manually chalane ke liye button degi
 jobs:
   build:
     runs-on: ubuntu-latest
