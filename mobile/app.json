@@ -1,13 +1,17 @@
 {
   "expo": {
     "name": "mobile",
-    "slug": "mobile",
+    "slug": "emergency-response-app-vzguobpdkg30nnn3zf1hj",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.saghar.emergencyresponse",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -24,8 +28,11 @@
     },
     "extra": {
       "eas": {
-        "projectId": "78cea90a-d598-4062-8234-6f8e11f0a79c"
+        "projectId": "79f2c983-f22c-49fd-80e4-923c8ea3e3b2"
       }
-    }
+    },
+    "plugins": [
+      "expo-font"
+    ]
   }
 }
