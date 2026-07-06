@@ -7,72 +7,99 @@ import {
   StyleSheet,
 } from "react-native";
 
-export default function ConfirmationScreen({
-  route,
-  navigation,
-}) {
+export default function ConfirmationScreen({ route, navigation }) {
   const requestId =
-    route?.params?.requestId ||
-    `REQ-${Math.floor(Math.random() * 1000)}`;
+    route?.params?.requestId || `REQ-${Math.floor(Math.random() * 100000)}`;
 
-  const status =
-    route?.params?.status || "Pending";
+  const status = route?.params?.status || "Pending";
+
+  const submittedTime = new Date().toLocaleString();
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.card}>
-        <Text style={styles.icon}>✅</Text>
+
+        <View style={styles.successCircle}>
+          <Text style={styles.successIcon}>✓</Text>
+        </View>
 
         <Text style={styles.title}>
-          SOS Submitted Successfully
+          Emergency Alert Submitted
         </Text>
 
         <Text style={styles.subtitle}>
-          Your emergency request has been
-          recorded and is awaiting response.
+          Your SOS request has been received successfully.
+          Our emergency response system is now processing
+          your request.
         </Text>
 
-        <View style={styles.infoBox}>
-          <Text style={styles.label}>
-            Request ID
-          </Text>
+        <View style={styles.infoCard}>
+          <View style={styles.row}>
+            <Text style={styles.label}>Request ID</Text>
+            <Text style={styles.value}>{requestId}</Text>
+          </View>
 
-          <Text style={styles.value}>
-            {requestId}
-          </Text>
+          <View style={styles.divider} />
+
+          <View style={styles.row}>
+            <Text style={styles.label}>Status</Text>
+
+            <View style={styles.statusBadge}>
+              <Text style={styles.statusText}>{status}</Text>
+            </View>
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.row}>
+            <Text style={styles.label}>Submitted</Text>
+            <Text style={styles.value}>{submittedTime}</Text>
+          </View>
         </View>
 
-        <View style={styles.infoBox}>
-          <Text style={styles.label}>
-            Status
-          </Text>
+        <View style={styles.noteBox}>
+          <Text style={styles.noteTitle}>Information</Text>
 
-          <Text style={styles.status}>
-            {status}
+          <Text style={styles.note}>
+            You can monitor the live progress of your emergency
+            request from the Tracking screen.
           </Text>
         </View>
 
         <TouchableOpacity
-          style={styles.button}
+          style={styles.trackButton}
           onPress={() =>
-            navigation.navigate("Home")
+            navigation.navigate("Tracking", {
+              requestId,
+              status,
+            })
           }
         >
-          <Text style={styles.buttonText}>
-            Back To Home
+          <Text style={styles.trackButtonText}>
+            Track Emergency
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.historyButton}
-          onPress={() =>
-            navigation.navigate("History")
-          }
-        >
-          <Text style={styles.historyText}>
-            View History
-          </Text>
-        </TouchableOpacity>
+        <View style={styles.bottomButtons}>
+          <TouchableOpacity
+            style={styles.homeButton}
+            onPress={() => navigation.navigate("Home")}
+          >
+            <Text style={styles.homeText}>
+              Home
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.historyButton}
+            onPress={() => navigation.navigate("History")}
+          >
+            <Text style={styles.historyText}>
+              History
+            </Text>
+          </TouchableOpacity>
+        </View>
+
       </View>
     </SafeAreaView>
   );
@@ -81,89 +108,158 @@ export default function ConfirmationScreen({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#F1F5F9",
     justifyContent: "center",
-    alignItems: "center",
     padding: 20,
   },
 
   card: {
-    width: "100%",
-    backgroundColor: "#FFFFFF",
-    borderRadius: 24,
+    backgroundColor: "#fff",
+    borderRadius: 25,
     padding: 25,
-    alignItems: "center",
-    elevation: 5,
+    elevation: 8,
   },
 
-  icon: {
-    fontSize: 70,
-    marginBottom: 15,
+  successCircle: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: "#DCFCE7",
+    justifyContent: "center",
+    alignItems: "center",
+    alignSelf: "center",
+    marginBottom: 20,
+  },
+
+  successIcon: {
+    fontSize: 50,
+    color: "#16A34A",
+    fontWeight: "bold",
   },
 
   title: {
     fontSize: 24,
-    fontWeight: "bold",
-    color: "#0F172A",
+    fontWeight: "700",
     textAlign: "center",
+    color: "#0F172A",
   },
 
   subtitle: {
-    marginTop: 10,
+    marginTop: 12,
     textAlign: "center",
     color: "#64748B",
-    lineHeight: 22,
+    lineHeight: 23,
     marginBottom: 25,
   },
 
-  infoBox: {
-    width: "100%",
+  infoCard: {
     backgroundColor: "#F8FAFC",
-    padding: 15,
-    borderRadius: 14,
-    marginBottom: 12,
+    borderRadius: 18,
+    padding: 18,
+  },
+
+  row: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 8,
+  },
+
+  divider: {
+    height: 1,
+    backgroundColor: "#E2E8F0",
+    marginVertical: 4,
   },
 
   label: {
     color: "#64748B",
-    fontSize: 13,
-    marginBottom: 5,
+    fontSize: 14,
   },
 
   value: {
-    fontSize: 16,
     fontWeight: "700",
     color: "#0F172A",
+    fontSize: 14,
+    flex: 1,
+    textAlign: "right",
+    marginLeft: 10,
   },
 
-  status: {
-    fontSize: 16,
+  statusBadge: {
+    backgroundColor: "#FEF3C7",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+
+  statusText: {
+    color: "#B45309",
     fontWeight: "700",
-    color: "#D62828",
   },
 
-  button: {
-    backgroundColor: "#D62828",
-    width: "100%",
+  noteBox: {
+    backgroundColor: "#EFF6FF",
+    borderRadius: 15,
     padding: 16,
-    borderRadius: 14,
-    marginTop: 15,
+    marginTop: 22,
+  },
+
+  noteTitle: {
+    fontWeight: "700",
+    color: "#1D4ED8",
+    marginBottom: 6,
+  },
+
+  note: {
+    color: "#475569",
+    lineHeight: 22,
+  },
+
+  trackButton: {
+    backgroundColor: "#D62828",
+    padding: 18,
+    borderRadius: 15,
+    alignItems: "center",
+    marginTop: 28,
+  },
+
+  trackButtonText: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 17,
+  },
+
+  bottomButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 18,
+  },
+
+  homeButton: {
+    flex: 1,
+    marginRight: 8,
+    padding: 15,
+    borderRadius: 12,
+    backgroundColor: "#E2E8F0",
     alignItems: "center",
   },
 
-  buttonText: {
-    color: "#FFFFFF",
-    fontWeight: "700",
-    fontSize: 16,
+  historyButton: {
+    flex: 1,
+    marginLeft: 8,
+    padding: 15,
+    borderRadius: 12,
+    backgroundColor: "#2563EB",
+    alignItems: "center",
   },
 
-  historyButton: {
-    marginTop: 15,
+  homeText: {
+    color: "#0F172A",
+    fontWeight: "700",
   },
 
   historyText: {
-    color: "#2563EB",
-    fontWeight: "600",
-    fontSize: 15,
+    color: "#fff",
+    fontWeight: "700",
   },
 });

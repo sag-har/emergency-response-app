@@ -1,75 +1,57 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-// 🔥 Sahi Screens Imports
-import HomeScreen from "../screens/HomeScreen"; // HomeScreenB ko simple HomeScreen kar diya
+import HomeScreen from "../screens/HomeScreen";
 import LoginScreen from "../screens/LoginScreen";
 import RegisterScreen from "../screens/RegisterScreen";
 import MainNavigator from "./MainNavigator";
 import ConfirmationScreen from "../screens/ConfirmationScreen";
+import TrackingScreen from "../screens/TrackingScreen";
 
 const Stack = createNativeStackNavigator();
 
 export default function AuthNavigator() {
   return (
-<<<<<<< HEAD
-    <NavigationContainer>
-      <Stack.Navigator
-        initialRouteName="Home"
-        screenOptions={{
-          headerShown: false,
-        }}
-      >
-        {/* Authentication Screens */}
-        <Stack.Screen
-          name="Home"
-          component={HomeScreen}
-        />
-
-        <Stack.Screen
-          name="Login"
-          component={LoginScreen}
-        />
-
-        <Stack.Screen
-          name="Register"
-          component={RegisterScreen}
-        />
-
-        {/* Main Application */}
-        <Stack.Screen
-          name="Main"
-          component={MainNavigator}
-        />
-
-        {/* SOS Confirmation */}
-        <Stack.Screen
-          name="Confirmation"
-          component={ConfirmationScreen}
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
-=======
-    // ✨ NavigationContainer yahan se hata diya kyunki yeh App.js mein lag chuka hai
     <Stack.Navigator
-      initialRouteName="Login" // Demo ke liye initial direct Login rakhein taake Sana ka UI dikhe
+      initialRouteName="Home"
       screenOptions={{
         headerShown: false,
       }}
     >
-      {/* Authentication Screens */}
-      <Stack.Screen name="Login" component={LoginScreen} />
-      <Stack.Screen name="Register" component={RegisterScreen} />
-      
-      {/* Landing/Welcome Screen (Agar use karni ho) */}
-      <Stack.Screen name="Home" component={HomeScreen} />
+      {/* Landing Screen */}
+      <Stack.Screen
+        name="Home"
+        component={HomeScreen}
+      />
 
-      {/* Main Application (Azhar ke Bottom Tabs) */}
-      <Stack.Screen name="MainHome" component={MainNavigator} />
+      {/* Authentication */}
+      <Stack.Screen
+        name="Login"
+        component={LoginScreen}
+      />
 
-      {/* SOS Confirmation Screen */}
-      <Stack.Screen name="Confirmation" component={ConfirmationScreen} />
+      <Stack.Screen
+        name="Register"
+        component={RegisterScreen}
+      />
+
+      {/* Main App */}
+      <Stack.Screen
+        name="Main"
+        component={MainNavigator}
+      />
+
+      {/* SOS Confirmation */}
+      <Stack.Screen
+        name="Confirmation"
+        component={ConfirmationScreen}
+      />
+
+      {/* Week 4 Tracking Screen */}
+      <Stack.Screen
+        name="Tracking"
+        component={TrackingScreen}
+      />
     </Stack.Navigator>
->>>>>>> feature/backend-core
   );
 }
