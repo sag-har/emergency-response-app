@@ -35,6 +35,7 @@ const submitSOS = () => {
   setTimeout(() => {
     const requestId = `REQ-${Date.now()}`;
 
+<<<<<<< HEAD
     const emergencyData = {
       id: requestId,
       type: selectedType,
@@ -42,11 +43,22 @@ const submitSOS = () => {
       status: "Pending",
       time: new Date().toLocaleString(),
     };
+=======
+      // 🔥 Content Cleaned: Duplication and git conflict markers removed completely
+      const emergencyData = {
+        id: requestId,
+        type: selectedType,
+        notes,
+        status: "Pending",
+        time: new Date().toLocaleString(),
+      };
+>>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
 
     addHistory(emergencyData);
 
     setLoading(false);
 
+<<<<<<< HEAD
     setNotes("");
 
     navigation.navigate("Confirmation", {
@@ -55,6 +67,25 @@ const submitSOS = () => {
 });
   }, 1200);
 };
+=======
+      Alert.alert(
+        "SOS Submitted",
+        "Your emergency request has been recorded successfully.",
+        [
+          {
+            text: "OK",
+            onPress: () => navigation.goBack(),
+          },
+        ]
+      );
+      
+      navigation.navigate("Confirmation", {
+        requestId,
+        status: "Pending",
+      });
+    }, 1200);
+  };
+>>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
 
   return (
     <SafeAreaView style={styles.container}>
@@ -73,7 +104,10 @@ const submitSOS = () => {
         {/* Emergency Type */}
         <View style={styles.card}>
           <Text style={styles.label}>Emergency Type</Text>
+<<<<<<< HEAD
 
+=======
+>>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
           <View style={styles.typeBox}>
             <Text style={styles.typeText}>{selectedType}</Text>
           </View>
@@ -88,7 +122,10 @@ const submitSOS = () => {
 
             <View>
               <Text style={styles.locationTitle}>Location Available</Text>
+<<<<<<< HEAD
 
+=======
+>>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
               <Text style={styles.locationText}>
                 GPS integration will be connected in Up Coming Phase.
               </Text>
@@ -99,7 +136,10 @@ const submitSOS = () => {
         {/* Emergency Details */}
         <View style={styles.card}>
           <Text style={styles.label}>Emergency Details</Text>
+<<<<<<< HEAD
 
+=======
+>>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
           <TextInput
             placeholder="Describe your emergency situation"
             placeholderTextColor="#94A3B8"
@@ -145,25 +185,37 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F8FAFC",
   },
+<<<<<<< HEAD
 
+=======
+>>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
   header: {
     paddingHorizontal: 20,
     paddingTop: 20,
     marginBottom: 20,
   },
+<<<<<<< HEAD
 
+=======
+>>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
   heading: {
     fontSize: 30,
     fontWeight: "bold",
     color: "#0F172A",
   },
+<<<<<<< HEAD
 
+=======
+>>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
   subHeading: {
     color: "#64748B",
     marginTop: 6,
     fontSize: 15,
   },
+<<<<<<< HEAD
 
+=======
+>>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
   card: {
     backgroundColor: "#FFFFFF",
     marginHorizontal: 20,
@@ -172,46 +224,70 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     elevation: 3,
   },
+<<<<<<< HEAD
 
+=======
+>>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
   label: {
     fontSize: 15,
     fontWeight: "700",
     color: "#0F172A",
     marginBottom: 12,
   },
+<<<<<<< HEAD
 
+=======
+>>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
   typeBox: {
     backgroundColor: "#FEE2E2",
     padding: 14,
     borderRadius: 12,
   },
+<<<<<<< HEAD
 
+=======
+>>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
   typeText: {
     color: "#D62828",
     fontSize: 16,
     fontWeight: "700",
   },
+<<<<<<< HEAD
 
+=======
+>>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
   locationBox: {
     flexDirection: "row",
     alignItems: "center",
   },
+<<<<<<< HEAD
 
+=======
+>>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
   locationIcon: {
     fontSize: 28,
     marginRight: 12,
   },
+<<<<<<< HEAD
 
+=======
+>>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
   locationTitle: {
     fontWeight: "700",
     color: "#0F172A",
   },
+<<<<<<< HEAD
 
+=======
+>>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
   locationText: {
     color: "#64748B",
     marginTop: 3,
   },
+<<<<<<< HEAD
 
+=======
+>>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
   textArea: {
     minHeight: 140,
     backgroundColor: "#F8FAFC",
@@ -220,7 +296,10 @@ const styles = StyleSheet.create({
     textAlignVertical: "top",
     color: "#0F172A",
   },
+<<<<<<< HEAD
 
+=======
+>>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
   noticeCard: {
     backgroundColor: "#FEF3C7",
     marginHorizontal: 20,
@@ -228,18 +307,27 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 16,
   },
+<<<<<<< HEAD
 
+=======
+>>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
   noticeTitle: {
     color: "#92400E",
     fontWeight: "700",
     marginBottom: 6,
   },
+<<<<<<< HEAD
 
+=======
+>>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
   noticeText: {
     color: "#92400E",
     lineHeight: 20,
   },
+<<<<<<< HEAD
 
+=======
+>>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
   submitButton: {
     backgroundColor: "#D62828",
     marginHorizontal: 20,
@@ -248,13 +336,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     elevation: 6,
   },
+<<<<<<< HEAD
 
+=======
+>>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
   loadingContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
   },
+<<<<<<< HEAD
 
+=======
+>>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
   submitText: {
     color: "#FFFFFF",
     fontWeight: "bold",

@@ -1,0 +1,52 @@
+name: Android Offline APK Build
+on:
+  push:
+    branches:
+      - main
+      - feature/backend-core
+  workflow_dispatch: # <--- Yeh line manually chalane ke liye button degi
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Expo CLI globally
+        run: npm install -g expo-cli
+
+      - name: Install Dependencies
+        working-directory: ./mobile
+        run: npm install --legacy-peer-deps
+
+      - name: Generate Native Android Folder
+        working-directory: ./mobile
+        run: npx expo prebuild --platform android
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Make Gradle Executable
+        working-directory: ./mobile/android
+        run: chmod +x gradlew
+
+      - name: Build Release APK
+        working-directory: ./mobile/android
+        run: ./gradlew assembleRelease
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Rescue-App-APK
+          path: mobile/android/app/build/outputs/apk/release/app-release.apk
