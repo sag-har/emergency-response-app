@@ -2,20 +2,25 @@ const express = require("express");
 const router = express.Router();
 const protect = require("../middleware/authMiddleware");
 
-// 1. Naya function (getEmergencyRequestsByUserId) yahan include kar liya
+// Controller se getNearestHospitals ko bhi import kar liya
 const { 
   createEmergencyRequest, 
   getEmergencyRequestById,
-  getEmergencyRequestsByUserId 
+  getEmergencyRequestsByUserId,
+  getNearestHospitals
 } = require("../controllers/emergencyController");
 
-// Secure endpoints by checking JWT first 
+// 1. Create Emergency Request (POST /api/emergency)
 router.post("/emergency", protect, createEmergencyRequest);
 
-// 2. YEH NAYA ROUTE HAI: GET /api/emergency?userId=... ke liye
-// Isay ID wale route se PEHLE rakhna hai taake Express isay dynamic ID na samajh le
+// 2. Get User's Emergency History via Query Param (GET /api/emergency?userId=...)
 router.get("/emergency", protect, getEmergencyRequestsByUserId);
 
+// 3. YEH NAYA ROUTE HAI: Nearest Hospitals Fetch karne ke liye (GET /api/emergency/hospitals?lat=xxx&lng=xxx)
+// Isay bhi dynamic ID se upar rakha hai taake bypass na ho
+router.get("/hospitals", protect, getNearestHospitals);
+
+// 4. Get Emergency Request by Explicit ID (GET /api/emergency/:id)
 router.get("/emergency/:id", protect, getEmergencyRequestById);
 
 module.exports = router;

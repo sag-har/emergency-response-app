@@ -1,19 +1,21 @@
-import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // 🔥 Yeh line add ki hai
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const API = axios.create({
-  BASE_URL: "https://untaken-excusable-announcer.ngrok-free.dev/api", // Ya jo bhi tumhara backend URL hai
+  baseURL: "http://192.168.0.107:5000/api",
+  timeout: 10000,
 });
 
-// attach token 
 API.interceptors.request.use(async (config) => {
-  const token = await AsyncStorage.getItem("token"); // 🚀 Ab yeh error nahi dega!
+  console.log("REQUEST URL:", config.baseURL + config.url);
+
+  const token = await AsyncStorage.getItem("token");
+
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
   return config;
-}, (error) => {
-  return Promise.reject(error);
 });
 
 export default API;

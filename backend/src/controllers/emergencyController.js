@@ -70,6 +70,7 @@ const getEmergencyRequestById = async (req, res) => {
   }
 };
 
+// Get Emergency Requests by User ID
 const getEmergencyRequestsByUserId = async (req, res) => {
   try {
     const { userId } = req.query; // ?userId=... se value nikalna
@@ -85,7 +86,7 @@ const getEmergencyRequestsByUserId = async (req, res) => {
     res.status(200).json({
       success: true,
       count: result.recordset.length,
-      data: result.recordset,
+      data: result.recordset
     });
   } catch (error) {
     console.error("Get User Emergencies Error:", error);
@@ -93,4 +94,59 @@ const getEmergencyRequestsByUserId = async (req, res) => {
   }
 };
 
-module.exports = { createEmergencyRequest, getEmergencyRequestById, getEmergencyRequestsByUserId };
+// GET /api/emergency/hospitals?lat=xxx&lng=xxx (Week 5 Track B Deliverable)
+const getNearestHospitals = async (req, res) => {
+  try {
+    const { lat, lng } = req.query;
+
+    // 1. Validation check
+    if (!lat || !lng) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Latitude (lat) and Longitude (lng) query parameters are required" 
+      });
+    }
+
+    const userLat = parseFloat(lat);
+    const userLng = parseFloat(lng);
+
+    // 2. SQL Query using Haversine Formula for distance sorting (6371 for KM)
+    const result = await sql.query`
+      SELECT 
+        id, 
+        name, 
+        address, 
+        lat, 
+        lng, 
+        phone, 
+        is_available,
+        (6371 * acos(
+          cos(radians(${userLat})) * cos(radians(lat)) * 
+          cos(radians(lng) - radians(${userLng})) + 
+          sin(radians(${userLat})) * sin(radians(lat))
+        )) AS distance_km
+      FROM [hospitals]
+      WHERE is_available = 1
+      ORDER BY distance_km ASC
+    `;
+
+    res.status(200).json({
+      success: true,
+      count: result.recordset.length,
+      data: result.recordset,
+    });
+  } catch (error) {
+    console.error("Get Nearest Hospitals Error:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Server Error retrieving sorted hospital list" 
+    });
+  }
+};
+
+module.exports = { 
+  createEmergencyRequest, 
+  getEmergencyRequestById, 
+  getEmergencyRequestsByUserId,
+  getNearestHospitals 
+};
