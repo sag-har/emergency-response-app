@@ -1,9 +1,8 @@
-import React, { useCallback, useState, useLayoutEffect } from "react";
+import React, { useEffect, useState, useLayoutEffect } from "react";
 import { SafeAreaView, View, Text, TouchableOpacity, StyleSheet, StatusBar, ActivityIndicator, Alert, ScrollView, Dimensions, } 
 from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
 
-import { clearAuth, hasValidSession } from "../storage/authStorage";
+import { getToken, removeToken } from "../storage/authStorage";
 
 const { width } = Dimensions.get("window");
 
@@ -11,27 +10,9 @@ export default function HomeScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  const checkAuth = async () => {
-    try {
-      const sessionIsValid = await hasValidSession();
-      setIsLoggedIn(sessionIsValid);
-
-      if (!sessionIsValid) {
-        navigation.replace("Login");
-      }
-    } catch (error) {
-      console.error("Auth check failed:", error);
-      navigation.replace("Login");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useFocusEffect(
-    useCallback(() => {
-      checkAuth();
-    }, [navigation])
-  );
+  useEffect(() => {
+    checkAuth();
+  }, []);
 
   // Navbar
   useLayoutEffect(() => {
@@ -64,6 +45,17 @@ export default function HomeScreen({ navigation }) {
     });
   }, [navigation, isLoggedIn]);
 
+  const checkAuth = async () => {
+    try {
+      const token = await getToken();
+      setIsLoggedIn(!!token);
+    } catch (error) {
+      console.error("Auth check failed:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleLogout = () => {
     Alert.alert(
       "Logout",
@@ -74,9 +66,9 @@ export default function HomeScreen({ navigation }) {
           text: "Logout",
           style: "destructive",
           onPress: async () => {
-            await clearAuth();
+            await removeToken();
             setIsLoggedIn(false);
-            navigation.replace("Login");
+            navigation.replace("Home");
           },
         },
       ]
