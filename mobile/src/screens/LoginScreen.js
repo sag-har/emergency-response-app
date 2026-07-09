@@ -4,6 +4,7 @@ from "react-native";
 
 import API from "../services/api";
 import { saveToken } from "../storage/authStorage";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function LoginScreen({ navigation }) {
   const [phone, setPhone] = useState("");
