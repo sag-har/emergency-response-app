@@ -213,6 +213,7 @@ const styles = StyleSheet.create({
     textAlignVertical: "top",
     color: "#0F172A",
   },
+  
   noticeCard: {
     backgroundColor: "#FEF3C7",
     marginHorizontal: 20,
