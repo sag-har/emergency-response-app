@@ -3,7 +3,8 @@ import { SafeAreaView, View, Text, TextInput, TouchableOpacity, StyleSheet, Stat
 from "react-native";
 
 import API from "../services/api";
-import { saveToken, saveUser } from "../storage/authStorage";
+import { saveToken } from "../storage/authStorage";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function LoginScreen({ navigation }) {
   const [phone, setPhone] = useState("");
@@ -19,21 +20,18 @@ export default function LoginScreen({ navigation }) {
     setPhoneError("");
     setPasswordError("");
 
-    const cleanPhone = phone.trim();
-    const cleanPassword = password.trim();
-
-    if (!cleanPhone) {
+    if (!phone.trim()) {
       setPhoneError("Please fill this field");
       isValid = false;
-    } else if (!/^\d{11}$/.test(cleanPhone)) {
+    } else if (phone.length < 11) {
       setPhoneError("Phone number must be 11 digits");
       isValid = false;
     }
 
-    if (!cleanPassword) {
+    if (!password.trim()) {
       setPasswordError("Please fill this field");
       isValid = false;
-    } else if (cleanPassword.length < 6) {
+    } else if (password.length < 6) {
       setPasswordError("Password must be at least 6 characters");
       isValid = false;
     }
@@ -47,22 +45,33 @@ export default function LoginScreen({ navigation }) {
   setLoading(true);
 
   try {
+    console.log("Attempting login with:", { phone });
+
     const response = await API.post("/auth/login", {
       phone,
-      password: password.trim(),
+      password,
     });
+
+    console.log("Login Response:", response.data);
 
     if (response?.data?.token && response?.data?.user) {
       const { token, user } = response.data;
 
       await saveToken(token);
-      await saveUser(user);
+
+      // Save user 
+      await AsyncStorage.setItem("user", JSON.stringify(user));
 
       Alert.alert("Login Successful", "Welcome back!", [
         {
           text: "Continue",
           onPress: () => {
-            navigation.replace("Home");
+            // Role-based navigation
+            if (user.role === "admin") {
+              navigation.replace("AdminHome"); 
+            } else {
+              navigation.replace("Profile"); 
+            }
           },
         },
       ]);
@@ -115,7 +124,7 @@ export default function LoginScreen({ navigation }) {
               keyboardType="phone-pad"
               value={phone}
               onChangeText={(text) => {
-                setPhone(text.replace(/\D/g, ""));
+                setPhone(text);
                 if (phoneError) setPhoneError(""); 
               }}
               style={[styles.input, phoneError && styles.inputError]}
