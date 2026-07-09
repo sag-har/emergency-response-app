@@ -1,33 +1,30 @@
-import React, { useCallback, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
-import { clearAuth, getUser, hasValidSession } from "../storage/authStorage";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { removeToken } from "../storage/authStorage";
 
 export default function ProfileScreen({ navigation }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const loadUser = async () => {
-    const sessionIsValid = await hasValidSession();
+  useEffect(() => {
+    loadUser();
+  }, []);
 
-    if (!sessionIsValid) {
-      navigation.replace("Login");
-      return;
+  const loadUser = async () => {
+    const data = await AsyncStorage.getItem("user");
+
+    if (data) {
+      setUser(JSON.parse(data));
     }
 
-    const data = await getUser();
-    setUser(data);
     setLoading(false);
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      loadUser();
-    }, [navigation])
-  );
-
   const handleLogout = async () => {
-    await clearAuth();
+    await removeToken();
+    await AsyncStorage.removeItem("user");
+
     navigation.replace("Login");
   };
 
@@ -59,13 +56,18 @@ export default function ProfileScreen({ navigation }) {
         </View>
 
         <Text style={styles.name}>{user.name}</Text>
-        <Text style={styles.role}>Registered user</Text>
+        <Text style={styles.role}>{user.role}</Text>
       </View>
 
       {/* INFO */}
       <View style={styles.infoCard}>
         <Text style={styles.label}>Phone</Text>
         <Text style={styles.value}>{user.phone}</Text>
+      </View>
+
+      <View style={styles.infoCard}>
+        <Text style={styles.label}>Role</Text>
+        <Text style={styles.value}>{user.role}</Text>
       </View>
 
       {/* LOGOUT */}
