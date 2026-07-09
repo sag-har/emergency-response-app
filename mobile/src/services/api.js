@@ -1,16 +1,14 @@
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { clearAuth } from "../storage/authStorage";
 
 const API = axios.create({
   baseURL: "http://192.168.0.107:5000/api",
-  headers: {
-    "Content-Type": "application/json",
-  },
+  timeout: 10000,
 });
 
-// attach token 
 API.interceptors.request.use(async (config) => {
+  console.log("REQUEST URL:", config.baseURL + config.url);
+
   const token = await AsyncStorage.getItem("token");
 
   if (token) {
@@ -20,15 +18,5 @@ API.interceptors.request.use(async (config) => {
   return config;
 });
 
-API.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    if (error.response?.status === 401) {
-      await clearAuth();
-    }
+export default API; 
 
-    return Promise.reject(error);
-  }
-);
-
-export default API;

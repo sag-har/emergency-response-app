@@ -10,6 +10,12 @@ const app = express();
 
 // Standard Middlewares
 app.use(cors());
+app.use((req, res, next) => {
+  console.log(
+    `[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`
+  );
+  next();
+});
 app.use(express.json());
 
 // Route Integrations
@@ -22,7 +28,10 @@ const emergencyRoutes = require("./src/routes/emergencyRoutes");
 app.use("/api", healthRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/test", testRoutes);
-app.use("/api/emergency", emergencyRoutes); // Static clean mounting for Week 2 endpoints
+
+// Week 5 Update Included: hospital routes are automatically handled under this router
+// Path: GET /api/emergency/emergency/hospitals?lat=xxx&lng=xxx (Let's double-check the path below)
+app.use("/api/emergency", emergencyRoutes); 
 
 const PORT = process.env.PORT || 5000;
 
