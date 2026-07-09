@@ -26,39 +26,34 @@ export default function RegisterScreen({ navigation }) {
     setConfirmPasswordError("");
 
     // validation
-    const cleanName = name.trim();
-    const cleanPhone = phone.trim();
-    const cleanPassword = password.trim();
-    const cleanConfirmPassword = confirmPassword.trim();
-
-    if (!cleanName) {
+    if (!name.trim()) {
       setNameError("Please fill this field");
       isValid = false;
-    } else if (cleanName.length < 3) {
+    } else if (name.trim().length < 3) {
       setNameError("Name must be at least 3 characters");
       isValid = false;
     }
 
-    if (!cleanPhone) {
+    if (!phone.trim()) {
       setPhoneError("Please fill this field");
       isValid = false;
-    } else if (!/^\d{11}$/.test(cleanPhone)) {
+    } else if (phone.length !== 11) {
       setPhoneError("Phone number must be 11 digits");
       isValid = false;
     }
 
-    if (!cleanPassword) {
+    if (!password.trim()) {
       setPasswordError("Please fill this field");
       isValid = false;
-    } else if (cleanPassword.length < 6) {
+    } else if (password.length < 6) {
       setPasswordError("Password must be at least 6 characters");
       isValid = false;
     }
 
-    if (!cleanConfirmPassword) {
+    if (!confirmPassword.trim()) {
       setConfirmPasswordError("Please fill this field");
       isValid = false;
-    } else if (cleanPassword !== cleanConfirmPassword) {
+    } else if (password !== confirmPassword) {
       setConfirmPasswordError("Passwords do not match");
       isValid = false;
     }
@@ -76,8 +71,8 @@ export default function RegisterScreen({ navigation }) {
     try {
       const response = await API.post("/auth/register", {
         name: name.trim(),
-        phone: phone.trim(),
-        password: password.trim(),
+        phone,
+        password,
       });
 
       Alert.alert(
@@ -142,7 +137,7 @@ export default function RegisterScreen({ navigation }) {
               keyboardType="phone-pad"
               value={phone}
               onChangeText={(text) => {
-                setPhone(text.replace(/\D/g, ""));
+                setPhone(text);
                 if (phoneError) setPhoneError("");
               }}
               style={[styles.input, phoneError && styles.inputError]}
