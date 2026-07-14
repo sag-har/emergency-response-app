@@ -54,7 +54,7 @@ const registerUser = async (req, res) => {
     });
   }
 };
-
+ 
 const loginUser = async (req, res) => {
   try {
     const { phone, password } = req.body;

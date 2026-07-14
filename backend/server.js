@@ -29,9 +29,11 @@ app.use("/api", healthRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/test", testRoutes);
 
-// Week 5 Update Included: hospital routes are automatically handled under this router
-// Path: GET /api/emergency/emergency/hospitals?lat=xxx&lng=xxx (Let's double-check the path below)
-app.use("/api/emergency", emergencyRoutes); 
+// =======================================================
+// WEEK 5, 6 & 7 CLEAN ROUTING (TRACK B - MEMBER C)
+// =======================================================
+// Prefix ko sirf "/api" par set kiya hai taake routes clean banein
+app.use("/api", emergencyRoutes); 
 
 const PORT = process.env.PORT || 5000;
 
@@ -44,6 +46,7 @@ const startServer = async () => {
     // 2. Start Listening globally (Keeps the process active & running)
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 Server running globally on port ${PORT}`);
+      console.log(`📌 Week 7 - Status Change Push Notification Endpoints are live and ready!`); 
     });
   } catch (error) {
     console.error("❌ Failed to start infrastructure server:", error);
