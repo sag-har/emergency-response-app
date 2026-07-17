@@ -2,161 +2,248 @@ import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
   View,
-  Text,
-  StyleSheet,
-  ActivityIndicator,
-  FlatList,
+ Text,
+ StyleSheet,
+ FlatList,
+ RefreshControl,
 } from "react-native";
 
 import HospitalCard from "../components/HospitalCard";
-import { hospitals } from "../data/hospitals";
+import hospitalService from "../services/hospitalService";
 
-export default function HospitalSelectionScreen({ navigation }) {
-  const [loading, setLoading] = useState(true);
-  const [hospitalList, setHospitalList] = useState([]);
+import {
+  LoadingSpinner,
+  EmptyState,
+  PrimaryButton,
+} from "../components";
+
+export default function HospitalSelectionScreen({
+  navigation,
+  route,
+}) {
+
+  const emergencyId =
+    route?.params?.emergencyId || null;
+
+  const latitude = 33.6844;
+  const longitude = 73.0479;
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [refreshing, setRefreshing] =
+    useState(false);
+
+  const [hospitals, setHospitals] =
+    useState([]);
+
+  const [error, setError] =
+    useState("");
 
   useEffect(() => {
-    fetchHospitals();
+    loadHospitals();
   }, []);
 
-  const fetchHospitals = () => {
-    setLoading(true);
+  const loadHospitals = async () => {
 
-    // Temporary Mock API
-    setTimeout(() => {
-      setHospitalList(hospitals);
+    try {
+
+      setLoading(true);
+      setError("");
+
+      const response =
+        await hospitalService.getNearbyHospitals(
+          latitude,
+          longitude
+        );
+
+      setHospitals(
+        response?.hospitals ||
+        response?.data?.hospitals ||
+        []
+      );
+
+    } catch (err) {
+
+      setError(
+        err.message ||
+        "Unable to load nearby hospitals."
+      );
+
+    } finally {
+
       setLoading(false);
-    }, 1200);
+      setRefreshing(false);
+
+    }
+
+  };
+
+  const onRefresh = () => {
+
+    setRefreshing(true);
+
+    loadHospitals();
+
   };
 
   const openHospital = (hospital) => {
-    navigation.navigate("HospitalDetail", {
-      hospital,
-    });
+
+    navigation.navigate(
+      "HospitalDetail",
+      {
+        hospital,
+        emergencyId,
+      }
+    );
+
   };
 
-  if (loading) {
+    if (loading) {
+    return (
+      <LoadingSpinner
+        message="Searching nearby hospitals..."
+      />
+    );
+  }
+
+  if (error) {
     return (
       <SafeAreaView style={styles.center}>
-        <ActivityIndicator size="large" color="#D62828" />
 
-        <Text style={styles.loadingText}>
-          Fetching nearby hospitals...
+        <Text style={styles.errorIcon}>
+          ⚠
         </Text>
+
+        <Text style={styles.errorTitle}>
+          Something went wrong
+        </Text>
+
+        <Text style={styles.errorText}>
+          {error}
+        </Text>
+
+        <PrimaryButton
+          title="Try Again"
+          onPress={loadHospitals}
+          style={{ marginTop: 25 }}
+        />
+
       </SafeAreaView>
     );
   }
 
-  if (hospitalList.length === 0) {
+  if (hospitals.length === 0) {
     return (
-      <SafeAreaView style={styles.center}>
-        <Text style={styles.emptyIcon}>🏥</Text>
-
-        <Text style={styles.emptyTitle}>
-          No Hospitals Found
-        </Text>
-
-        <Text style={styles.emptySubtitle}>
-          There are currently no hospitals available near your location.
-        </Text>
-      </SafeAreaView>
+      <EmptyState
+        icon="🏥"
+        title="No Nearby Hospitals"
+        subtitle="There are currently no hospitals available nearby."
+        actionLabel="Refresh"
+        onAction={loadHospitals}
+      />
     );
   }
 
   return (
+
     <SafeAreaView style={styles.container}>
-      {/* Header */}
 
       <View style={styles.header}>
+
         <Text style={styles.title}>
           Nearby Hospitals
         </Text>
 
         <Text style={styles.subtitle}>
-          Select the nearest hospital for emergency assistance.
+          Select a hospital for emergency
+          treatment.
         </Text>
+
       </View>
 
-      {/* Hospital List */}
-
       <FlatList
-        data={hospitalList}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
+        data={hospitals}
+        keyExtractor={(item) =>
+          item.id?.toString()
+        }
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+          />
+        }
+        contentContainerStyle={styles.list}
         renderItem={({ item }) => (
           <HospitalCard
             hospital={item}
-            onPress={openHospital}
+            onPress={() =>
+              openHospital(item)
+            }
           />
         )}
       />
+
     </SafeAreaView>
+
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F8FAFC",
+
+  container:{
+    flex:1,
+    backgroundColor:"#F8FAFC",
   },
 
-  header: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 10,
+  header:{
+    paddingHorizontal:20,
+    paddingTop:20,
+    paddingBottom:15,
   },
 
-  title: {
-    fontSize: 30,
-    fontWeight: "bold",
-    color: "#0F172A",
+  title:{
+    fontSize:28,
+    fontWeight:"700",
+    color:"#111827",
   },
 
-  subtitle: {
-    marginTop: 6,
-    fontSize: 15,
-    color: "#64748B",
-    lineHeight: 22,
+  subtitle:{
+    marginTop:6,
+    color:"#64748B",
+    lineHeight:22,
   },
 
-  list: {
-    paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 30,
+  list:{
+    paddingHorizontal:18,
+    paddingBottom:30,
   },
 
-  center: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 30,
-    backgroundColor: "#F8FAFC",
+  center:{
+    flex:1,
+    justifyContent:"center",
+    alignItems:"center",
+    paddingHorizontal:30,
+    backgroundColor:"#F8FAFC",
   },
 
-  loadingText: {
-    marginTop: 15,
-    fontSize: 16,
-    color: "#475569",
-    fontWeight: "600",
+  errorIcon:{
+    fontSize:65,
   },
 
-  emptyIcon: {
-    fontSize: 70,
-    marginBottom: 20,
+  errorTitle:{
+    marginTop:15,
+    fontSize:24,
+    fontWeight:"700",
+    color:"#DC2626",
   },
 
-  emptyTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#0F172A",
-    marginBottom: 10,
+  errorText:{
+    marginTop:10,
+    color:"#64748B",
+    textAlign:"center",
+    lineHeight:22,
   },
 
-  emptySubtitle: {
-    textAlign: "center",
-    color: "#64748B",
-    lineHeight: 24,
-    fontSize: 15,
-  },
 });

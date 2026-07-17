@@ -1,25 +1,26 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+} from "react-native";
 
-export default function AvailabilityBadge({ available }) {
+export default function AvailabilityBadge({
+  available,
+}) {
   return (
     <View
       style={[
         styles.badge,
-        {
-          backgroundColor: available ? "#DCFCE7" : "#FEE2E2",
-        },
+        available
+          ? styles.available
+          : styles.unavailable,
       ]}
     >
-      <Text
-        style={[
-          styles.text,
-          {
-            color: available ? "#15803D" : "#DC2626",
-          },
-        ]}
-      >
-        {available ? "Available" : "Unavailable"}
+      <Text style={styles.text}>
+        {available
+          ? "Available"
+          : "Unavailable"}
       </Text>
     </View>
   );
@@ -30,11 +31,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
-    alignSelf: "flex-start",
+  },
+
+  available: {
+    backgroundColor: "#DCFCE7",
+  },
+
+  unavailable: {
+    backgroundColor: "#FEE2E2",
   },
 
   text: {
-    fontSize: 12,
     fontWeight: "700",
+    fontSize: 12,
   },
 });

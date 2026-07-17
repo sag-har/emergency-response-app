@@ -1,130 +1,193 @@
 const bcrypt = require("bcryptjs");
-const { sql } = require("../config/db");
 const jwt = require("jsonwebtoken");
-const crypto = require("crypto");
+const { sql } = require("../config/db");
+
+const buildAuthToken = (user) => {
+  return jwt.sign(
+    {
+      id: user.id,
+      phone: user.phone,
+      role: user.role,
+    },
+    process.env.JWT_SECRET || "SUPER_SECRET_KEY_123",
+    {
+      expiresIn: "7d",
+    }
+  );
+};
+
+// ===================== REGISTER =====================
 
 const registerUser = async (req, res) => {
   try {
     const { name, phone, password } = req.body;
 
-    // 🔥 Strict validation taake khali ya undefined strings DB tak na jayein
-    if (!name || !phone || !password || phone.trim() === "" || password.trim() === "") {
+    if (!name || !phone || !password) {
       return res.status(400).json({
         success: false,
-        message: "All fields are required and cannot be empty",
+        message: "All fields are required.",
       });
     }
 
+    const cleanName = name.trim();
     const cleanPhone = phone.trim();
 
-    // 1. Column matched with DB structure 'phone_number'
+    if (!/^\d{11}$/.test(cleanPhone)) {
+      return res.status(400).json({
+        success: false,
+        message: "Phone number must be exactly 11 digits.",
+      });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 6 characters.",
+      });
+    }
+
+    // Check if phone already exists
     const existingUser = await sql.query`
-      SELECT * FROM [users]
-      WHERE phone_number = ${cleanPhone}
+      SELECT *
+      FROM dbo.Users
+      WHERE PhoneNumber = ${cleanPhone}
     `;
 
     if (existingUser.recordset.length > 0) {
       return res.status(400).json({
         success: false,
-        message: "Phone already exists",
+        message: "Phone number already exists.",
       });
     }
 
-    const hashedPassword = await bcrypt.hash(password.trim(), 10);
-    const userId = crypto.randomUUID();
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 2. Insert clean data explicitly
+    // Insert user (UserID is IDENTITY)
     await sql.query`
-      INSERT INTO [users]
-      (id, full_name, phone_number, password_hash)
+      INSERT INTO dbo.Users
+      (
+        FullName,
+        Email,
+        PhoneNumber,
+        PasswordHash,
+        Role,
+        CreatedAt
+      )
       VALUES
-      (${userId}, ${name.trim()}, ${cleanPhone}, ${hashedPassword})
+      (
+        ${cleanName},
+        ${""},
+        ${cleanPhone},
+        ${hashedPassword},
+        ${"Citizen"},
+        GETDATE()
+      )
     `;
 
-    res.status(201).json({
+    // Fetch inserted user
+    const result = await sql.query`
+      SELECT TOP 1 *
+      FROM dbo.Users
+      WHERE PhoneNumber = ${cleanPhone}
+      ORDER BY UserID DESC
+    `;
+
+    const createdUser = result.recordset[0];
+
+    const user = {
+      id: createdUser.UserID,
+      name: createdUser.FullName,
+      phone: createdUser.PhoneNumber,
+      email: createdUser.Email,
+      role: createdUser.Role,
+    };
+
+    const token = buildAuthToken(user);
+
+    return res.status(201).json({
       success: true,
-      message: "User registered successfully",
+      message: "Registration successful.",
+      token,
+      user,
     });
 
   } catch (error) {
-    console.error("Registration DB Error:", error);
-    res.status(500).json({
+    console.error("Registration Error:", error);
+
+    return res.status(500).json({
       success: false,
       message: "Server Error",
+      error: error.message,
     });
   }
 };
+
+// ===================== LOGIN =====================
 
 const loginUser = async (req, res) => {
   try {
     const { phone, password } = req.body;
 
-    if (!phone || !password || phone.trim() === "" || password.trim() === "") {
+    if (!phone || !password) {
       return res.status(400).json({
         success: false,
-        message: "Phone and password are required",
+        message: "Phone and password are required.",
       });
     }
 
     const cleanPhone = phone.trim();
 
-    // 3. Explicitly fetching using cleaned string
     const result = await sql.query`
-      SELECT * FROM [users]
-      WHERE phone_number = ${cleanPhone}
+      SELECT *
+      FROM dbo.Users
+      WHERE PhoneNumber = ${cleanPhone}
     `;
 
     if (result.recordset.length === 0) {
       return res.status(401).json({
         success: false,
-        message: "Invalid credentials",
+        message: "Invalid phone number or password.",
       });
     }
 
     const user = result.recordset[0];
 
-    // 4. Verification using database snake_case keys
     const isMatch = await bcrypt.compare(
-      password.trim(),
-      user.password_hash
+      password,
+      user.PasswordHash
     );
 
     if (!isMatch) {
       return res.status(401).json({
         success: false,
-        message: "Invalid credentials",
+        message: "Invalid phone number or password.",
       });
     }
 
-    // 5. JWT payload updated to use exact database properties
-    const token = jwt.sign(
-      {
-        id: user.id,
-        phone: user.phone_number,
-      },
-      process.env.JWT_SECRET || "SUPER_SECRET_KEY_123",
-      {
-        expiresIn: "7d",
-      }
-    );
+    const responseUser = {
+      id: user.UserID,
+      name: user.FullName,
+      phone: user.PhoneNumber,
+      email: user.Email,
+      role: user.Role,
+    };
 
-    // 6. Response properties aligned with database response keys
-    res.status(200).json({
+    const token = buildAuthToken(responseUser);
+
+    return res.status(200).json({
       success: true,
-      message: "Login successful",
+      message: "Login successful.",
       token,
-      user: {
-        id: user.id,
-        name: user.full_name,
-        phone: user.phone_number,
-      },
+      user: responseUser,
     });
 
   } catch (error) {
-    console.error("Login DB Error:", error);
-    res.status(500).json({
+    console.error("Login Error:", error);
+
+    return res.status(500).json({
       success: false,
       message: "Server Error",
+      error: error.message,
     });
   }
 };

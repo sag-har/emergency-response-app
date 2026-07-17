@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useContext, useState } from "react";
 import {
   SafeAreaView,
   View,
@@ -6,353 +6,272 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   ScrollView,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 
 import { AppContext } from "../context/AppContext";
+import emergencyService from "../services/emergencyService";
+import { generateRequestId } from "../utils/helpers";
 
-export default function SOSScreen({ route, navigation }) {
+export default function SOSScreen({ navigation, route }) {
   const { addHistory } = useContext(AppContext);
 
-  const selectedType = route?.params?.type || "General";
+  const emergencyType = route?.params?.type || "General";
 
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
 
-const submitSOS = () => {
-  if (!notes.trim()) {
-    Alert.alert(
-      "Missing Information",
-      "Please enter emergency details."
-    );
-    return;
-  }
-
-  setLoading(true);
-
-  setTimeout(() => {
-    const requestId = `REQ-${Date.now()}`;
-
-<<<<<<< HEAD
-    const emergencyData = {
-      id: requestId,
-      type: selectedType,
-      notes,
-      status: "Pending",
-      time: new Date().toLocaleString(),
-    };
-=======
-      // 🔥 Content Cleaned: Duplication and git conflict markers removed completely
-      const emergencyData = {
-        id: requestId,
-        type: selectedType,
-        notes,
-        status: "Pending",
-        time: new Date().toLocaleString(),
-      };
->>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
-
-    addHistory(emergencyData);
-
-    setLoading(false);
-
-<<<<<<< HEAD
-    setNotes("");
-
-    navigation.navigate("Confirmation", {
-  requestId,
-  status: "Pending",
-});
-  }, 1200);
-};
-=======
+  const submitSOS = async () => {
+    if (!notes.trim()) {
       Alert.alert(
-        "SOS Submitted",
-        "Your emergency request has been recorded successfully.",
-        [
-          {
-            text: "OK",
-            onPress: () => navigation.goBack(),
-          },
-        ]
+        "Missing Details",
+        "Please describe your emergency."
       );
-      
-      navigation.navigate("Confirmation", {
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const requestId = generateRequestId();
+
+      const emergency = {
+        id: requestId,
+        type: emergencyType,
+       	status: "Pending",
+        notes,
+        createdAt: new Date().toISOString(),
+      };
+
+      // API Call
+      try {
+        await emergencyService.createEmergency(emergency);
+      } catch (e) {
+        console.log("Using local emergency history.");
+      }
+
+      addHistory(emergency);
+
+      navigation.replace("Confirmation", {
         requestId,
-        status: "Pending",
+        emergency,
       });
-    }, 1200);
+    } catch (error) {
+      Alert.alert(
+        "Error",
+        "Unable to submit emergency request."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
->>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 30 }}
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.heading}>Emergency SOS</Text>
-          <Text style={styles.subHeading}>
-            Provide emergency details for faster assistance.
+      <ScrollView showsVerticalScrollIndicator={false}>
+
+        <Text style={styles.title}>
+          Emergency Request
+        </Text>
+
+        <Text style={styles.subtitle}>
+          Fill in the information below.
+        </Text>
+
+        <View style={styles.card}>
+
+          <Text style={styles.label}>
+            Emergency Type
           </Text>
-        </View>
 
-        {/* Emergency Type */}
-        <View style={styles.card}>
-          <Text style={styles.label}>Emergency Type</Text>
-<<<<<<< HEAD
-
-=======
->>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
-          <View style={styles.typeBox}>
-            <Text style={styles.typeText}>{selectedType}</Text>
+          <View style={styles.typeBadge}>
+            <Text style={styles.typeText}>
+              {emergencyType}
+            </Text>
           </View>
+
         </View>
 
-        {/* Location */}
         <View style={styles.card}>
-          <Text style={styles.label}>Current Location</Text>
+
+          <Text style={styles.label}>
+            Current Location
+          </Text>
 
           <View style={styles.locationBox}>
-            <Text style={styles.locationIcon}>📍</Text>
+            <Text style={styles.locationIcon}>
+              📍
+            </Text>
 
             <View>
-              <Text style={styles.locationTitle}>Location Available</Text>
-<<<<<<< HEAD
+              <Text style={styles.locationTitle}>
+                GPS Location
+              </Text>
 
-=======
->>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
-              <Text style={styles.locationText}>
-                GPS integration will be connected in Up Coming Phase.
+              <Text style={styles.locationSubtitle}>
+                Live location integration available in backend.
               </Text>
             </View>
           </View>
+
         </View>
 
-        {/* Emergency Details */}
         <View style={styles.card}>
-          <Text style={styles.label}>Emergency Details</Text>
-<<<<<<< HEAD
 
-=======
->>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
+          <Text style={styles.label}>
+            Emergency Details
+          </Text>
+
           <TextInput
-            placeholder="Describe your emergency situation"
-            placeholderTextColor="#94A3B8"
             multiline
             value={notes}
             onChangeText={setNotes}
-            style={styles.textArea}
+            placeholder="Describe your emergency..."
+            style={styles.input}
           />
+
         </View>
 
-        {/* Notice */}
-        <View style={styles.noticeCard}>
-          <Text style={styles.noticeTitle}>⚠ Emergency Notice</Text>
+        <View style={styles.noticeBox}>
+
+          <Text style={styles.noticeTitle}>
+            Emergency Notice
+          </Text>
 
           <Text style={styles.noticeText}>
-            Submit requests only for real emergencies. False alerts may delay
-            assistance for people in need.
+            False emergency requests may delay help for someone who really needs assistance.
           </Text>
+
         </View>
 
-        {/* Submit Button */}
         <TouchableOpacity
-          style={[styles.submitButton, loading && { opacity: 0.7 }]}
+          style={styles.button}
           disabled={loading}
           onPress={submitSOS}
         >
           {loading ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="small" color="#FFFFFF" />
-              <Text style={styles.submitText}>Submitting...</Text>
-            </View>
+            <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={styles.submitText}>Submit SOS Alert</Text>
+            <Text style={styles.buttonText}>
+              Submit Emergency
+            </Text>
           )}
         </TouchableOpacity>
+
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+
   container: {
     flex: 1,
     backgroundColor: "#F8FAFC",
+    padding: 20,
   },
-<<<<<<< HEAD
 
-=======
->>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
-  header: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    marginBottom: 20,
+  title: {
+    fontSize: 28,
+    fontWeight: "700",
+    color: "#111827",
+    marginTop: 10,
   },
-<<<<<<< HEAD
 
-=======
->>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
-  heading: {
-    fontSize: 30,
-    fontWeight: "bold",
-    color: "#0F172A",
-  },
-<<<<<<< HEAD
-
-=======
->>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
-  subHeading: {
+  subtitle: {
     color: "#64748B",
-    marginTop: 6,
-    fontSize: 15,
+    marginBottom: 20,
+    marginTop: 5,
   },
-<<<<<<< HEAD
 
-=======
->>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
   card: {
-    backgroundColor: "#FFFFFF",
-    marginHorizontal: 20,
-    marginBottom: 15,
+    backgroundColor: "#fff",
     padding: 18,
     borderRadius: 18,
+    marginBottom: 18,
     elevation: 3,
   },
-<<<<<<< HEAD
 
-=======
->>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
   label: {
+    fontWeight: "700",
     fontSize: 15,
-    fontWeight: "700",
-    color: "#0F172A",
     marginBottom: 12,
+    color: "#111827",
   },
-<<<<<<< HEAD
 
-=======
->>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
-  typeBox: {
+  typeBadge: {
     backgroundColor: "#FEE2E2",
-    padding: 14,
-    borderRadius: 12,
+    alignSelf: "flex-start",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 30,
   },
-<<<<<<< HEAD
 
-=======
->>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
   typeText: {
-    color: "#D62828",
-    fontSize: 16,
+    color: "#DC2626",
     fontWeight: "700",
   },
-<<<<<<< HEAD
 
-=======
->>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
   locationBox: {
     flexDirection: "row",
     alignItems: "center",
   },
-<<<<<<< HEAD
 
-=======
->>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
   locationIcon: {
     fontSize: 28,
     marginRight: 12,
   },
-<<<<<<< HEAD
 
-=======
->>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
   locationTitle: {
     fontWeight: "700",
-    color: "#0F172A",
+    color: "#111827",
   },
-<<<<<<< HEAD
 
-=======
->>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
-  locationText: {
+  locationSubtitle: {
     color: "#64748B",
     marginTop: 3,
   },
-<<<<<<< HEAD
 
-=======
->>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
-  textArea: {
-    minHeight: 140,
+  input: {
     backgroundColor: "#F8FAFC",
-    borderRadius: 14,
+    borderRadius: 12,
+    minHeight: 140,
     padding: 15,
     textAlignVertical: "top",
-    color: "#0F172A",
   },
-<<<<<<< HEAD
 
-=======
->>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
-  noticeCard: {
+  noticeBox: {
     backgroundColor: "#FEF3C7",
-    marginHorizontal: 20,
-    marginBottom: 20,
-    padding: 16,
+    padding: 18,
     borderRadius: 16,
+    marginBottom: 25,
   },
-<<<<<<< HEAD
 
-=======
->>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
   noticeTitle: {
-    color: "#92400E",
     fontWeight: "700",
+    color: "#92400E",
     marginBottom: 6,
   },
-<<<<<<< HEAD
 
-=======
->>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
   noticeText: {
     color: "#92400E",
-    lineHeight: 20,
+    lineHeight: 22,
   },
-<<<<<<< HEAD
 
-=======
->>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
-  submitButton: {
-    backgroundColor: "#D62828",
-    marginHorizontal: 20,
+  button: {
+    backgroundColor: "#DC2626",
     padding: 18,
-    borderRadius: 18,
+    borderRadius: 16,
     alignItems: "center",
-    elevation: 6,
+    marginBottom: 30,
   },
-<<<<<<< HEAD
 
-=======
->>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
-  loadingContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-<<<<<<< HEAD
-
-=======
->>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
-  submitText: {
-    color: "#FFFFFF",
-    fontWeight: "bold",
+  buttonText: {
+    color: "#fff",
     fontSize: 17,
-    marginLeft: 8,
+    fontWeight: "700",
   },
+
 });

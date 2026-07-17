@@ -1,64 +1,166 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
-const AuthContext = createContext(null);
+import {
+  saveToken,
+  getToken,
+  removeToken,
+  saveUser,
+  getUser,
+  removeUser,
+  clearAuthStorage,
+} from "../storage/authStorage";
+
+const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
-  const [isLoading, setIsLoading] = useState(true); // Check stored token on startup
+  // ======================================
+  // STATES
+  // ======================================
 
-  // Load stored auth on app start
+  const [user, setUser] = useState(null);
+
+  const [token, setToken] = useState(null);
+
+  const [isLoading, setIsLoading] =
+    useState(true);
+
+  // ======================================
+  // AUTO LOGIN
+  // ======================================
+
   useEffect(() => {
-    loadStoredAuth();
+    loadAuth();
   }, []);
 
-  const loadStoredAuth = async () => {
+  const loadAuth = async () => {
     try {
-      const storedToken = await AsyncStorage.getItem('token');
-      const storedUser = await AsyncStorage.getItem('user');
+      const storedToken = await getToken();
+
+      const storedUser = await getUser();
+
       if (storedToken && storedUser) {
         setToken(storedToken);
-        setUser(JSON.parse(storedUser));
+        setUser(storedUser);
       }
     } catch (error) {
-      console.error('Failed to load stored auth:', error);
+      console.log("Auth Load Error:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const signIn = async (tokenValue, userData) => {
-    try {
-      await AsyncStorage.setItem('token', tokenValue);
-      await AsyncStorage.setItem('user', JSON.stringify(userData));
-      setToken(tokenValue);
-      setUser(userData);
-    } catch (error) {
-      console.error('Failed to save auth:', error);
-      throw error;
-    }
+  // ======================================
+  // LOGIN
+  // ======================================
+
+  const login = async (
+    jwtToken,
+    userData
+  ) => {
+    await saveToken(jwtToken);
+
+    await saveUser(userData);
+
+    setToken(jwtToken);
+
+    setUser(userData);
   };
 
-  const signOut = async () => {
-    try {
-      await AsyncStorage.multiRemove(['token', 'user']);
-      setToken(null);
-      setUser(null);
-    } catch (error) {
-      console.error('Failed to clear auth:', error);
-    }
+  // ======================================
+  // LOGOUT
+  // ======================================
+
+  const logout = async () => {
+    await clearAuthStorage();
+
+    setToken(null);
+
+    setUser(null);
   };
+
+  // ======================================
+  // UPDATE PROFILE
+  // ======================================
+
+  const updateProfile = async (
+    updatedUser
+  ) => {
+    await saveUser(updatedUser);
+
+    setUser(updatedUser);
+  };
+
+  // ======================================
+  // TOKEN EXPIRED
+  // ======================================
+
+  const tokenExpired = async () => {
+    await logout();
+  };
+
+  // ======================================
+  // REFRESH USER
+  // ======================================
+
+  const refreshUser = async () => {
+    const latestUser = await getUser();
+
+    setUser(latestUser);
+  };
+
+  // ======================================
+  // CONTEXT VALUES
+  // ======================================
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, signIn, signOut }}>
+    <AuthContext.Provider
+      value={{
+        // States
+        user,
+        token,
+        isLoading,
+
+        // Helpers
+        isAuthenticated:
+          token !== null,
+
+        // Actions
+        login,
+        logout,
+
+        updateProfile,
+        refreshUser,
+
+        tokenExpired,
+
+        setUser,
+        setToken,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 };
 
+// ======================================
+// HOOK
+// ======================================
+
 export const useAuth = () => {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used inside AuthProvider');
-  return ctx;
+  const context = useContext(AuthContext);
+
+  if (!context) {
+    throw new Error(
+      "useAuth must be used inside AuthProvider"
+    );
+  }
+
+  return context;
 };
+
+export default AuthContext;

@@ -3,54 +3,73 @@ import {
   SafeAreaView,
   View,
   Text,
-  TouchableOpacity,
-  StyleSheet,
-  ActivityIndicator,
-  Alert,
   ScrollView,
+  StyleSheet,
+  Alert,
 } from "react-native";
 
 import AvailabilityBadge from "../components/AvailabilityBadge";
+import { PrimaryButton } from "../components";
+import hospitalService from "../services/hospitalService";
 
-export default function HospitalDetailScreen({ route, navigation }) {
-  const { hospital } = route.params;
+export default function HospitalDetailScreen({
+  route,
+  navigation,
+}) {
+  const { hospital, emergencyId } = route.params;
 
   const [loading, setLoading] = useState(false);
 
-  const handleSelectHospital = () => {
-    setLoading(true);
+  const handleSelectHospital = async () => {
+    try {
+      setLoading(true);
 
-    // Mock API Call
-    setTimeout(() => {
-      setLoading(false);
+      // No emergency created yet
+      if (!emergencyId) {
+        navigation.replace("Tracking", {
+          selectedHospital: hospital,
+        });
+        return;
+      }
+
+      await hospitalService.assignHospital(
+        emergencyId,
+        hospital.id
+      );
 
       Alert.alert(
         "Hospital Selected",
-        `${hospital.name} has been linked with your emergency request.`,
+        "Hospital assigned successfully.",
         [
           {
-            text: "Continue",
+            text: "Track Ambulance",
             onPress: () =>
-              navigation.navigate("Tracking", {
+              navigation.replace("Tracking", {
+                emergencyId,
                 selectedHospital: hospital,
               }),
           },
         ]
       );
-    }, 1200);
+    } catch (error) {
+      Alert.alert(
+        "Error",
+        error.message ||
+          "Unable to assign hospital."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
+        contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{
-          paddingBottom: 30,
-        }}
       >
-        {/* Hospital Card */}
+                <View style={styles.card}>
 
-        <View style={styles.card}>
           <Text style={styles.icon}>🏥</Text>
 
           <Text style={styles.title}>
@@ -58,182 +77,142 @@ export default function HospitalDetailScreen({ route, navigation }) {
           </Text>
 
           <AvailabilityBadge
-            available={hospital.isAvailable}
+            available={hospital.is_available}
           />
 
           <View style={styles.divider} />
 
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>
-              Address
-            </Text>
+          <InfoRow
+            label="Address"
+            value={hospital.address}
+          />
 
-            <Text style={styles.value}>
-              {hospital.address}
-            </Text>
-          </View>
+          <InfoRow
+            label="Phone"
+            value={hospital.phone}
+          />
 
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>
-              Phone
-            </Text>
+          <InfoRow
+            label="Distance"
+            value={
+              hospital.distance || "Unknown"
+            }
+          />
 
-            <Text style={styles.value}>
-              {hospital.phone}
-            </Text>
-          </View>
+          <InfoRow
+            label="Latitude"
+            value={hospital.lat}
+          />
 
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>
-              Distance
-            </Text>
-
-            <Text style={styles.distance}>
-              {hospital.distance}
-            </Text>
-          </View>
+          <InfoRow
+            label="Longitude"
+            value={hospital.lng}
+          />
 
           <View style={styles.divider} />
 
           <Text style={styles.description}>
-            This hospital is available to receive emergency
-            patients. Selecting this hospital will associate
-            it with your emergency request so responders know
-            where to transport you.
+            Selecting this hospital will
+            assign your emergency request
+            to the nearest available
+            emergency response team.
           </Text>
 
-          <TouchableOpacity
-            style={[
-              styles.selectButton,
-              loading && { opacity: 0.7 },
-            ]}
-            disabled={loading}
+          <PrimaryButton
+            title="Select Hospital"
+            loading={loading}
             onPress={handleSelectHospital}
-          >
-            {loading ? (
-              <View style={styles.loading}>
-                <ActivityIndicator
-                  size="small"
-                  color="#FFFFFF"
-                />
+          />
 
-                <Text style={styles.buttonText}>
-                  Selecting...
-                </Text>
-              </View>
-            ) : (
-              <Text style={styles.buttonText}>
-                Select Hospital
-              </Text>
-            )}
-          </TouchableOpacity>
+          <PrimaryButton
+            title="Back"
+            color="#64748B"
+            style={{ marginTop: 15 }}
+            onPress={() =>
+              navigation.goBack()
+            }
+          />
 
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Text style={styles.backText}>
-              Back
-            </Text>
-          </TouchableOpacity>
         </View>
+
       </ScrollView>
     </SafeAreaView>
   );
 }
 
+function InfoRow({ label, value }) {
+  return (
+    <View style={styles.row}>
+      <Text style={styles.label}>
+        {label}
+      </Text>
+
+      <Text style={styles.value}>
+        {value || "N/A"}
+      </Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F8FAFC",
+
+  container:{
+    flex:1,
+    backgroundColor:"#F8FAFC",
   },
 
-  card: {
-    backgroundColor: "#FFFFFF",
-    margin: 20,
-    borderRadius: 22,
-    padding: 22,
-    elevation: 5,
+  content:{
+    padding:20,
+    paddingBottom:40,
   },
 
-  icon: {
-    fontSize: 70,
-    textAlign: "center",
-    marginBottom: 15,
+  card:{
+    backgroundColor:"#FFFFFF",
+    borderRadius:20,
+    padding:22,
+    elevation:4,
   },
 
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    textAlign: "center",
-    color: "#0F172A",
-    marginBottom: 15,
+  icon:{
+    fontSize:70,
+    textAlign:"center",
   },
 
-  divider: {
-    height: 1,
-    backgroundColor: "#E2E8F0",
-    marginVertical: 20,
+  title:{
+    fontSize:24,
+    fontWeight:"700",
+    color:"#111827",
+    textAlign:"center",
+    marginTop:10,
+    marginBottom:15,
   },
 
-  infoRow: {
-    marginBottom: 18,
+  divider:{
+    height:1,
+    backgroundColor:"#E2E8F0",
+    marginVertical:18,
   },
 
-  label: {
-    fontSize: 13,
-    color: "#64748B",
-    marginBottom: 4,
+  row:{
+    marginBottom:14,
   },
 
-  value: {
-    fontSize: 16,
-    color: "#0F172A",
-    fontWeight: "600",
+  label:{
+    color:"#64748B",
+    fontSize:13,
+    marginBottom:4,
   },
 
-  distance: {
-    fontSize: 18,
-    color: "#D62828",
-    fontWeight: "bold",
+  value:{
+    fontSize:16,
+    color:"#111827",
+    fontWeight:"600",
   },
 
-  description: {
-    color: "#64748B",
-    lineHeight: 24,
-    fontSize: 15,
-    marginBottom: 30,
+  description:{
+    color:"#64748B",
+    lineHeight:23,
+    marginBottom:25,
   },
 
-  selectButton: {
-    backgroundColor: "#D62828",
-    padding: 18,
-    borderRadius: 16,
-    alignItems: "center",
-    elevation: 5,
-  },
-
-  loading: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  buttonText: {
-    color: "#FFFFFF",
-    fontWeight: "bold",
-    fontSize: 17,
-    marginLeft: 8,
-  },
-
-  backButton: {
-    marginTop: 18,
-    alignItems: "center",
-  },
-
-  backText: {
-    color: "#2563EB",
-    fontWeight: "700",
-    fontSize: 16,
-  },
 });

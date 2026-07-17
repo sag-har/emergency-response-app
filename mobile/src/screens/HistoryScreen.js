@@ -1,56 +1,118 @@
-import React, { useContext } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import {
   SafeAreaView,
   View,
   Text,
   StyleSheet,
   FlatList,
+  RefreshControl,
 } from "react-native";
 
 import { AppContext } from "../context/AppContext";
+import { getEmergencyHistory } from "../services/emergencyService";
 
 export default function HistoryScreen() {
-  const { history } = useContext(AppContext);
+  const { history: localHistory, user } = useContext(AppContext);
+
+  const [history, setHistory] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    loadHistory();
+  }, []);
+
+  const loadHistory = async () => {
+    try {
+      setRefreshing(true);
+
+      const response = await getEmergencyHistory(user?.id);
+
+      if (response.success) {
+        setHistory(response.data);
+      } else {
+        setHistory(localHistory);
+      }
+    } catch (error) {
+      console.log(error);
+      setHistory(localHistory);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const getIcon = (type) => {
     switch (type) {
       case "Medical":
         return "🚑";
+
       case "Fire":
         return "🔥";
+
       case "Crime":
         return "🚔";
+
       case "Accident":
         return "🚗";
+
       default:
         return "🚨";
     }
   };
 
-  const reversedHistory = [...history].reverse();
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "Pending":
+        return "#F59E0B";
+
+      case "Accepted":
+      case "Dispatched":
+        return "#2563EB";
+
+      case "On The Way":
+        return "#7C3AED";
+
+      case "Resolved":
+      case "Completed":
+        return "#16A34A";
+
+      default:
+        return "#64748B";
+    }
+  };
 
   const renderItem = ({ item }) => (
     <View style={styles.card}>
       <View style={styles.topRow}>
         <View style={styles.leftSection}>
           <Text style={styles.icon}>
-            {getIcon(item.type)}
+            {getIcon(item.type || item.emergency_type)}
           </Text>
 
           <View style={{ flex: 1 }}>
             <Text style={styles.title}>
-              {item.type} Emergency
+              {(item.type || item.emergency_type) + " Emergency"}
             </Text>
 
             <Text style={styles.time}>
-              {item.time}
+              {item.time ||
+                item.created_at ||
+                item.CreatedAt}
             </Text>
           </View>
         </View>
 
-        <View style={styles.statusBadge}>
+        <View
+          style={[
+            styles.statusBadge,
+            {
+              backgroundColor: getStatusColor(
+                item.status || item.Status
+              ),
+            },
+          ]}
+        >
           <Text style={styles.statusText}>
-            {item.status}
+            {item.status || item.Status}
           </Text>
         </View>
       </View>
@@ -58,11 +120,14 @@ export default function HistoryScreen() {
       <View style={styles.divider} />
 
       <Text style={styles.notesLabel}>
-        Emergency Details
+        Description
       </Text>
 
       <Text style={styles.notes}>
-        {item.notes}
+        {item.notes ||
+          item.description ||
+          item.Description ||
+          "No description provided"}
       </Text>
     </View>
   );
@@ -93,10 +158,18 @@ export default function HistoryScreen() {
         </View>
       ) : (
         <FlatList
-          data={reversedHistory}
-          renderItem={renderItem}
+          data={history}
           keyExtractor={(item, index) =>
-            item.id || index.toString()
+            item.id?.toString() ||
+            item.Id?.toString() ||
+            index.toString()
+          }
+          renderItem={renderItem}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={loadHistory}
+            />
           }
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
@@ -167,14 +240,13 @@ const styles = StyleSheet.create({
   },
 
   statusBadge: {
-    backgroundColor: "#FEF3C7",
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 50,
+    borderRadius: 30,
   },
 
   statusText: {
-    color: "#92400E",
+    color: "#FFFFFF",
     fontWeight: "700",
     fontSize: 12,
   },

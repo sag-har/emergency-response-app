@@ -1,13 +1,33 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
+// Authentication
 import HomeScreen from "../screens/HomeScreen";
 import LoginScreen from "../screens/LoginScreen";
 import RegisterScreen from "../screens/RegisterScreen";
-import ProfileScreen from "../screens/ProfileScreen";
+
+// Main Navigation
 import MainNavigator from "./MainNavigator";
+
+// User
+import ProfileScreen from "../screens/ProfileScreen";
+import SettingsScreen from "../screens/SettingsScreen";
+
+// Emergency Flow
 import ConfirmationScreen from "../screens/ConfirmationScreen";
 import TrackingScreen from "../screens/TrackingScreen";
+import HistoryScreen from "../screens/HistoryScreen";
+
+// Hospital Flow
+import HospitalSelectionScreen from "../screens/HospitalSelectionScreen";
+import HospitalDetailScreen from "../screens/HospitalDetailScreen";
+
+// Contacts
+import EmergencyContactsScreen from "../screens/EmergencyContactsScreen";
+import AddContactScreen from "../screens/AddContactScreen";
+
+// Notifications
+import NotificationHistoryScreen from "../screens/NotificationHistoryScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -15,25 +35,24 @@ export default function AuthNavigator() {
   return (
     <Stack.Navigator
       initialRouteName="Home"
-<<<<<<< HEAD
       screenOptions={{
         headerShown: false,
+        animation: "slide_from_right",
       }}
     >
-      {/* Landing Screen */}
-=======
-      screenOptions={{ headerShown: false }}
-    >
->>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
+      {/* ===========================
+          Landing
+      =========================== */}
+
       <Stack.Screen
         name="Home"
         component={HomeScreen}
       />
 
-<<<<<<< HEAD
-      {/* Authentication */}
-=======
->>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
+      {/* ===========================
+          Authentication
+      =========================== */}
+
       <Stack.Screen
         name="Login"
         component={LoginScreen}
@@ -44,37 +63,84 @@ export default function AuthNavigator() {
         component={RegisterScreen}
       />
 
-<<<<<<< HEAD
-      {/* Main App */}
-=======
-      <Stack.Screen
-        name="Profile"
-        component={ProfileScreen}
-      />
+      {/* ===========================
+          Main App
+      =========================== */}
 
->>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
       <Stack.Screen
         name="Main"
         component={MainNavigator}
       />
 
-<<<<<<< HEAD
-      {/* SOS Confirmation */}
-=======
->>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
+      {/* ===========================
+          User
+      =========================== */}
+
+      <Stack.Screen
+        name="Profile"
+        component={ProfileScreen}
+      />
+
+      <Stack.Screen
+        name="Settings"
+        component={SettingsScreen}
+      />
+
+      {/* ===========================
+          Emergency Flow
+      =========================== */}
+
       <Stack.Screen
         name="Confirmation"
         component={ConfirmationScreen}
       />
-<<<<<<< HEAD
 
-      {/* Week 4 Tracking Screen */}
       <Stack.Screen
         name="Tracking"
         component={TrackingScreen}
       />
-=======
->>>>>>> 39eecbbb5d453e3b8cf551a4ac634816ec6d543f
+
+      <Stack.Screen
+        name="History"
+        component={HistoryScreen}
+      />
+
+      {/* ===========================
+          Hospitals
+      =========================== */}
+
+      <Stack.Screen
+        name="HospitalSelection"
+        component={HospitalSelectionScreen}
+      />
+
+      <Stack.Screen
+        name="HospitalDetail"
+        component={HospitalDetailScreen}
+      />
+
+      {/* ===========================
+          Emergency Contacts
+      =========================== */}
+
+      <Stack.Screen
+        name="EmergencyContacts"
+        component={EmergencyContactsScreen}
+      />
+
+      <Stack.Screen
+        name="AddContact"
+        component={AddContactScreen}
+      />
+
+      {/* ===========================
+          Notifications
+      =========================== */}
+
+      <Stack.Screen
+        name="NotificationHistory"
+        component={NotificationHistoryScreen}
+      />
     </Stack.Navigator>
   );
 }

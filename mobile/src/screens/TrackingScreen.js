@@ -4,38 +4,51 @@ import {
   ScrollView,
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
+  Alert,
 } from "react-native";
 
 import StatusCard from "../components/StatusCard";
 import Timeline from "../components/Timeline";
 import LocationCard from "../components/LocationCard";
 
-export default function TrackingScreen({ route, navigation }) {
-  const requestId =
-    route?.params?.requestId || "REQ-0001";
+import { PrimaryButton } from "../components";
+import emergencyService from "../services/emergencyService";
 
-  const selectedHospital =
+export default function TrackingScreen({ navigation, route }) {
+
+  const requestId =
+    route?.params?.requestId || "REQ-00001";
+
+  const hospital =
     route?.params?.selectedHospital || null;
 
-  const [status, setStatus] = useState("Pending");
-  const [eta, setEta] = useState("12 mins");
+  const [status, setStatus] =
+    useState("Pending");
+
+  const [eta, setEta] =
+    useState("12 mins");
+
+  const [loading, setLoading] =
+    useState(false);
 
   useEffect(() => {
+
+    loadTracking();
+
     const timer1 = setTimeout(() => {
       setStatus("Accepted");
       setEta("9 mins");
     }, 4000);
 
     const timer2 = setTimeout(() => {
-      setStatus("Ambulance Dispatched");
-      setEta("6 mins");
+      setStatus("On The Way");
+      setEta("5 mins");
     }, 8000);
 
     const timer3 = setTimeout(() => {
-      setStatus("Arriving");
-      setEta("2 mins");
+      setStatus("Arrived");
+      setEta("0 mins");
     }, 12000);
 
     return () => {
@@ -43,29 +56,51 @@ export default function TrackingScreen({ route, navigation }) {
       clearTimeout(timer2);
       clearTimeout(timer3);
     };
+
   }, []);
 
-  return (
+  const loadTracking = async () => {
+
+    try {
+
+      setLoading(true);
+
+      try {
+        await emergencyService.getEmergency(requestId);
+      } catch (e) {}
+
+    } catch (error) {
+
+      Alert.alert(
+        "Tracking",
+        "Unable to refresh tracking."
+      );
+
+    } finally {
+      setLoading(false);
+    }
+
+  };
+
+    return (
     <SafeAreaView style={styles.container}>
       <ScrollView
-        contentContainerStyle={{ paddingBottom: 35 }}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 40 }}
       >
-        {/* Header */}
 
         <View style={styles.header}>
           <Text style={styles.title}>
-            Emergency Tracking
+            Live Emergency Tracking
           </Text>
 
           <Text style={styles.subtitle}>
-            Your emergency request is currently being processed.
+            Monitor the progress of your emergency request.
           </Text>
         </View>
 
-        {/* Request ID */}
+        <View style={styles.requestCard}>
 
-        <View style={styles.card}>
           <Text style={styles.label}>
             Request ID
           </Text>
@@ -73,240 +108,211 @@ export default function TrackingScreen({ route, navigation }) {
           <Text style={styles.requestId}>
             {requestId}
           </Text>
-        </View>
 
-        {/* Status */}
+        </View>
 
         <StatusCard status={status} />
 
-        {/* ETA */}
-
         <View style={styles.etaCard}>
-          <Text style={styles.etaTitle}>
+
+          <Text style={styles.etaLabel}>
             Estimated Arrival
           </Text>
 
           <Text style={styles.eta}>
             🚑 {eta}
           </Text>
-        </View>
 
-        {/* Location */}
+        </View>
 
         <LocationCard />
 
-        {/* Timeline */}
+        <Timeline currentStatus={status} />
 
-        <Timeline status={status} />
+        {hospital && (
 
-        {/* Selected Hospital */}
-
-        {selectedHospital && (
           <View style={styles.hospitalCard}>
-            <Text style={styles.hospitalTitle}>
+
+            <Text style={styles.hospitalHeading}>
               Selected Hospital
             </Text>
 
             <Text style={styles.hospitalName}>
-              {selectedHospital.name}
+              {hospital.name}
             </Text>
 
-            <Text style={styles.hospitalText}>
-              📍 {selectedHospital.address}
+            <Text style={styles.info}>
+              📍 {hospital.address}
             </Text>
 
-            <Text style={styles.hospitalText}>
-              📞 {selectedHospital.phone}
+            <Text style={styles.info}>
+              📞 {hospital.phone}
             </Text>
 
-            <Text style={styles.hospitalDistance}>
-              Distance: {selectedHospital.distance}
+            <Text style={styles.distance}>
+              Distance : {hospital.distance}
             </Text>
+
           </View>
+
         )}
 
-        {/* Notice */}
-
         <View style={styles.noticeCard}>
+
           <Text style={styles.noticeTitle}>
-            Safety Notice
+            Safety Tips
           </Text>
 
           <Text style={styles.noticeText}>
-            Please keep your phone nearby. Emergency responders
-            may contact you before arriving.
+            Keep your phone nearby. Emergency responders
+            may call you before reaching your location.
           </Text>
+
         </View>
 
-        {/* Hospital */}
+        <PrimaryButton
+          title="Refresh Tracking"
+          loading={loading}
+          onPress={loadTracking}
+          style={{ marginBottom: 15 }}
+        />
 
-        <TouchableOpacity
-          style={styles.redButton}
+        <PrimaryButton
+          title="Choose Hospital"
+          color="#DC2626"
           onPress={() =>
             navigation.navigate("HospitalSelection")
           }
-        >
-          <Text style={styles.buttonText}>
-            Choose Hospital
-          </Text>
-        </TouchableOpacity>
+          style={{ marginBottom: 15 }}
+        />
 
-        {/* Home */}
-
-        <TouchableOpacity
-          style={styles.blueButton}
+        <PrimaryButton
+          title="Go Home"
+          color="#2563EB"
           onPress={() =>
             navigation.navigate("Home")
           }
-        >
-          <Text style={styles.buttonText}>
-            Back to Home
-          </Text>
-        </TouchableOpacity>
+        />
+
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F8FAFC",
+
+  container:{
+    flex:1,
+    backgroundColor:"#F8FAFC",
   },
 
-  header: {
-    padding: 20,
+  header:{
+    padding:20,
   },
 
-  title: {
-    fontSize: 30,
-    fontWeight: "bold",
-    color: "#0F172A",
+  title:{
+    fontSize:28,
+    fontWeight:"700",
+    color:"#111827",
   },
 
-  subtitle: {
-    marginTop: 6,
-    color: "#64748B",
-    fontSize: 15,
+  subtitle:{
+    marginTop:5,
+    color:"#64748B",
   },
 
-  card: {
-    backgroundColor: "#FFFFFF",
-    marginHorizontal: 20,
-    marginBottom: 15,
-    borderRadius: 18,
-    padding: 18,
-    elevation: 3,
+  requestCard:{
+    backgroundColor:"#fff",
+    marginHorizontal:20,
+    marginBottom:15,
+    padding:18,
+    borderRadius:18,
+    elevation:3,
   },
 
-  label: {
-    color: "#64748B",
-    marginBottom: 6,
-    fontSize: 13,
+  label:{
+    color:"#64748B",
+    marginBottom:5,
   },
 
-  requestId: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#0F172A",
+  requestId:{
+    fontSize:18,
+    fontWeight:"700",
+    color:"#111827",
   },
 
-  etaCard: {
-    backgroundColor: "#D62828",
-    marginHorizontal: 20,
-    marginBottom: 15,
-    borderRadius: 18,
-    padding: 22,
-    alignItems: "center",
-    elevation: 5,
+  etaCard:{
+    backgroundColor:"#DC2626",
+    marginHorizontal:20,
+    marginBottom:18,
+    borderRadius:18,
+    padding:22,
+    alignItems:"center",
   },
 
-  etaTitle: {
-    color: "#fff",
-    fontSize: 15,
+  etaLabel:{
+    color:"#fff",
+    fontSize:15,
   },
 
-  eta: {
-    color: "#fff",
-    fontSize: 28,
-    fontWeight: "bold",
-    marginTop: 8,
+  eta:{
+    color:"#fff",
+    fontSize:30,
+    fontWeight:"700",
+    marginTop:8,
   },
 
-  hospitalCard: {
-    backgroundColor: "#FFFFFF",
-    marginHorizontal: 20,
-    marginBottom: 15,
-    padding: 18,
-    borderRadius: 18,
-    elevation: 3,
+  hospitalCard:{
+    backgroundColor:"#fff",
+    marginHorizontal:20,
+    marginBottom:18,
+    padding:18,
+    borderRadius:18,
+    elevation:3,
   },
 
-  hospitalTitle: {
-    fontSize: 17,
-    fontWeight: "bold",
-    color: "#0F172A",
-    marginBottom: 12,
+  hospitalHeading:{
+    fontSize:17,
+    fontWeight:"700",
+    marginBottom:12,
+    color:"#111827",
   },
 
-  hospitalName: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#2563EB",
-    marginBottom: 8,
+  hospitalName:{
+    fontSize:18,
+    fontWeight:"700",
+    color:"#2563EB",
+    marginBottom:8,
   },
 
-  hospitalText: {
-    color: "#475569",
-    marginBottom: 4,
+  info:{
+    color:"#475569",
+    marginBottom:5,
   },
 
-  hospitalDistance: {
-    marginTop: 8,
-    color: "#D62828",
-    fontWeight: "700",
+  distance:{
+    color:"#DC2626",
+    marginTop:8,
+    fontWeight:"700",
   },
 
-  noticeCard: {
-    backgroundColor: "#FFF7ED",
-    margin: 20,
-    borderRadius: 18,
-    padding: 18,
+  noticeCard:{
+    backgroundColor:"#FEF3C7",
+    marginHorizontal:20,
+    marginBottom:20,
+    padding:18,
+    borderRadius:18,
   },
 
-  noticeTitle: {
-    fontWeight: "bold",
-    color: "#92400E",
-    marginBottom: 6,
+  noticeTitle:{
+    fontWeight:"700",
+    color:"#92400E",
+    marginBottom:8,
   },
 
-  noticeText: {
-    color: "#92400E",
-    lineHeight: 22,
+  noticeText:{
+    color:"#92400E",
+    lineHeight:22,
   },
 
-  redButton: {
-    backgroundColor: "#D62828",
-    marginHorizontal: 20,
-    padding: 18,
-    borderRadius: 18,
-    alignItems: "center",
-    marginBottom: 12,
-    elevation: 4,
-  },
-
-  blueButton: {
-    backgroundColor: "#2563EB",
-    marginHorizontal: 20,
-    padding: 18,
-    borderRadius: 18,
-    alignItems: "center",
-    elevation: 4,
-  },
-
-  buttonText: {
-    color: "#FFFFFF",
-    fontWeight: "bold",
-    fontSize: 17,
-  },
 });

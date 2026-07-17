@@ -1,21 +1,63 @@
 const express = require("express");
 const router = express.Router();
+
 const protect = require("../middleware/authMiddleware");
 
-// 1. Naya function (getEmergencyRequestsByUserId) yahan include kar liya
-const { 
-  createEmergencyRequest, 
+const {
+  createEmergencyRequest,
   getEmergencyRequestById,
-  getEmergencyRequestsByUserId 
+  getEmergencyRequestsByUserId,
+  getNearestHospitals,
+  updateEmergencyStatus,
+  getEmergencyContacts,
+  addEmergencyContact,
+  deleteEmergencyContact,
+  notifyEmergencyContact,
 } = require("../controllers/emergencyController");
 
-// Secure endpoints by checking JWT first 
+// Emergency Request
 router.post("/emergency", protect, createEmergencyRequest);
 
-// 2. YEH NAYA ROUTE HAI: GET /api/emergency?userId=... ke liye
-// Isay ID wale route se PEHLE rakhna hai taake Express isay dynamic ID na samajh le
 router.get("/emergency", protect, getEmergencyRequestsByUserId);
 
 router.get("/emergency/:id", protect, getEmergencyRequestById);
+
+router.put(
+  "/emergency/:id/status",
+  protect,
+  updateEmergencyStatus
+);
+
+// Hospitals
+router.get(
+  "/hospitals",
+  protect,
+  getNearestHospitals
+);
+
+// Contacts
+router.get(
+  "/contacts",
+  protect,
+  getEmergencyContacts
+);
+
+router.post(
+  "/contacts",
+  protect,
+  addEmergencyContact
+);
+
+router.delete(
+  "/contacts/:id",
+  protect,
+  deleteEmergencyContact
+);
+
+router.post(
+  "/contacts/:id/notify",
+  protect,
+  notifyEmergencyContact
+);
 
 module.exports = router;

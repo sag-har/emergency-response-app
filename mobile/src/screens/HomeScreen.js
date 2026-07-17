@@ -1,43 +1,64 @@
-import React, { useEffect, useState, useLayoutEffect } from "react";
-import { SafeAreaView, View, Text, TouchableOpacity, StyleSheet, StatusBar, ActivityIndicator, Alert, ScrollView, Dimensions, } 
-from "react-native";
+import React, {
+  useEffect,
+  useState,
+  useLayoutEffect,
+} from "react";
 
-import { getToken, removeToken } from "../storage/authStorage";
+import {
+  SafeAreaView,
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  StatusBar,
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+} from "react-native";
 
-const { width } = Dimensions.get("window");
+import {
+  getUser,
+  getToken,
+  clearStorage,
+} from "../storage/authStorage";
 
 export default function HomeScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    checkAuth();
+    loadUser();
   }, []);
 
-  // Navbar
   useLayoutEffect(() => {
     navigation.setOptions({
       headerShown: true,
+
+      headerTitle: () => (
+        <Text style={styles.logo}>
+          RESCUE
+        </Text>
+      ),
+
       headerStyle: {
         backgroundColor: "#FFFFFF",
-        elevation: 3,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
       },
-      headerTitle: () => null,
-      headerLeft: () => (
-        <View style={styles.headerLeft}>
-          <Text style={styles.logo}>RESCUE</Text>
-        </View>
-      ),
+
+      headerShadowVisible: false,
+
       headerRight: () => (
         <TouchableOpacity
-          style={styles.headerRightButton}
-          onPress={isLoggedIn ? handleLogout : () => navigation.navigate("Login")}
+          style={styles.loginButton}
+          onPress={() => {
+            if (isLoggedIn) {
+              logout();
+            } else {
+              navigation.navigate("Login");
+            }
+          }}
         >
-          <Text style={styles.headerRightText}>
+          <Text style={styles.loginText}>
             {isLoggedIn ? "Logout" : "Login"}
           </Text>
         </TouchableOpacity>
@@ -45,29 +66,40 @@ export default function HomeScreen({ navigation }) {
     });
   }, [navigation, isLoggedIn]);
 
-  const checkAuth = async () => {
+  const loadUser = async () => {
     try {
       const token = await getToken();
-      setIsLoggedIn(!!token);
-    } catch (error) {
-      console.error("Auth check failed:", error);
+      const userData = await getUser();
+
+      if (token && userData) {
+        setIsLoggedIn(true);
+        setUser(userData);
+      }
+    } catch (e) {
+      console.log(e);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleLogout = () => {
+  const logout = () => {
     Alert.alert(
       "Logout",
       "Are you sure you want to logout?",
       [
-        { text: "Cancel", style: "cancel" },
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
         {
           text: "Logout",
           style: "destructive",
           onPress: async () => {
-            await removeToken();
+            await clearStorage();
+
             setIsLoggedIn(false);
+            setUser(null);
+
             navigation.replace("Home");
           },
         },
@@ -77,218 +109,406 @@ export default function HomeScreen({ navigation }) {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color="#D32F2F" />
-        <Text style={styles.loadingText}>Loading...</Text>
+      <SafeAreaView style={styles.loadingContainer}>
+        <ActivityIndicator
+          size="large"
+          color="#D62828"
+        />
+
+        <Text style={styles.loadingText}>
+          Loading...
+        </Text>
       </SafeAreaView>
     );
   }
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar
+        backgroundColor="#FFFFFF"
+        barStyle="dark-content"
+      />
 
-      <ScrollView 
+      <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
       >
-        {/* Hero  */}
-        <View style={styles.heroSection}>
-          <Text style={styles.heroTitle}>Stay Safe, Stay Protected</Text>
-          <Text style={styles.heroSubtitle}>
-            Professional emergency response at your fingertips
+        {/* Hero */}
+
+        <View style={styles.hero}>
+          <Text style={styles.heroTitle}>
+            Emergency Response System
           </Text>
+
+          <Text style={styles.heroSubtitle}>
+            Fast • Reliable • Secure
+          </Text>
+
+          {isLoggedIn && (
+            <View style={styles.welcomeBox}>
+              <Text style={styles.welcomeText}>
+                Welcome,
+              </Text>
+
+              <Text style={styles.userName}>
+                {user?.name || "User"}
+              </Text>
+            </View>
+          )}
         </View>
 
-        {/* Features */}
-        <View style={styles.featuresContainer}>
-          <Text style={styles.sectionTitle}>Our Services</Text>
+        {/* Quick Actions */}
 
-          <Feature
-            title="Instant SOS"
-            desc="Send emergency alert with live location in one tap"
-            icon=""
-          />
-          <Feature
-            title="Nearby Help"
-            desc="Find hospitals, police & ambulances instantly"
-            icon=""
-          />
-          <Feature
-            title="Live Tracking"
-            desc="Real-time location sharing with responders"
-            icon=""
-          />
-          <Feature
-            title="Emergency Contacts"
-            desc="Quick access to family & important numbers"
-            icon=""
-          />
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>
+            Quick Actions
+          </Text>
+
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() =>
+              navigation.navigate("Main")
+            }
+          >
+            <Text style={styles.cardIcon}>
+              🚨
+            </Text>
+
+            <View style={styles.cardText}>
+              <Text style={styles.cardTitle}>
+                Emergency SOS
+              </Text>
+
+              <Text style={styles.cardSubtitle}>
+                Send an emergency alert instantly
+              </Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() =>
+              navigation.navigate(
+                "HospitalSelection"
+              )
+            }
+          >
+            <Text style={styles.cardIcon}>
+              🏥
+            </Text>
+
+            <View style={styles.cardText}>
+              <Text style={styles.cardTitle}>
+                Nearby Hospitals
+              </Text>
+
+              <Text style={styles.cardSubtitle}>
+                Find available hospitals
+              </Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() =>
+              navigation.navigate(
+                "EmergencyContacts"
+              )
+            }
+          >
+            <Text style={styles.cardIcon}>
+              👨‍👩‍👧
+            </Text>
+
+            <View style={styles.cardText}>
+              <Text style={styles.cardTitle}>
+                Emergency Contacts
+              </Text>
+
+              <Text style={styles.cardSubtitle}>
+                Manage trusted contacts
+              </Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() =>
+              navigation.navigate(
+                "NotificationHistory"
+              )
+            }
+          >
+            <Text style={styles.cardIcon}>
+              🔔
+            </Text>
+
+            <View style={styles.cardText}>
+              <Text style={styles.cardTitle}>
+                Notifications
+              </Text>
+
+              <Text style={styles.cardSubtitle}>
+                View notification history
+              </Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() =>
+              navigation.navigate("Settings")
+            }
+          >
+            <Text style={styles.cardIcon}>
+              ⚙️
+            </Text>
+
+            <View style={styles.cardText}>
+              <Text style={styles.cardTitle}>
+                Settings
+              </Text>
+
+              <Text style={styles.cardSubtitle}>
+                Application preferences
+              </Text>
+            </View>
+          </TouchableOpacity>
+                  </View>
+
+        {/* Features */}
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>
+            Why Choose Rescue?
+          </Text>
+
+          <View style={styles.featureCard}>
+            <Text style={styles.featureTitle}>
+              🚑 Instant Emergency Alerts
+            </Text>
+
+            <Text style={styles.featureText}>
+              Notify emergency responders immediately with
+              your current location.
+            </Text>
+          </View>
+
+          <View style={styles.featureCard}>
+            <Text style={styles.featureTitle}>
+              📍 Live Tracking
+            </Text>
+
+            <Text style={styles.featureText}>
+              Track the response team in real time until
+              help reaches you.
+            </Text>
+          </View>
+
+          <View style={styles.featureCard}>
+            <Text style={styles.featureTitle}>
+              🏥 Hospital Selection
+            </Text>
+
+            <Text style={styles.featureText}>
+              View nearby hospitals and select the most
+              suitable one during emergencies.
+            </Text>
+          </View>
+
+          <View style={styles.featureCard}>
+            <Text style={styles.featureTitle}>
+              👨‍👩‍👧 Emergency Contacts
+            </Text>
+
+            <Text style={styles.featureText}>
+              Notify your family members instantly whenever
+              an emergency request is submitted.
+            </Text>
+          </View>
         </View>
 
         {/* Bottom */}
-        <View style={styles.bottomContainer}>
-          <Text style={styles.statusText}>
-            {isLoggedIn
-              ? " You are logged in and fully protected"
-              : " Login to unlock all emergency features"}
+
+        <View style={styles.footer}>
+          <Text style={styles.footerTitle}>
+            Your Safety Is Our Priority
+          </Text>
+
+          <Text style={styles.footerText}>
+            Emergency Response System
+          </Text>
+
+          <Text style={styles.version}>
+            Version 1.0
           </Text>
         </View>
+
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-const Feature = ({ title, desc, icon }) => (
-  <View style={styles.featureCard}>
-    {/* <View style={styles.iconContainer}>
-      <Text style={styles.icon}>{icon}</Text>
-    </View> */}
-    <View style={styles.featureTextContainer}>
-      <Text style={styles.featureTitle}>{title}</Text>
-      <Text style={styles.featureDesc}>{desc}</Text>
-    </View>
-  </View>
-);
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F8FAFC",
+
+  container:{
+    flex:1,
+    backgroundColor:"#F8FAFC",
   },
 
-  scrollContent: {
-    paddingBottom: 40,
+  loadingContainer:{
+    flex:1,
+    justifyContent:"center",
+    alignItems:"center",
+    backgroundColor:"#F8FAFC",
   },
 
-  loaderContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#F8FAFC",
+  loadingText:{
+    marginTop:15,
+    fontSize:16,
+    color:"#475569",
+    fontWeight:"600",
   },
 
-  loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: "#666",
+  logo:{
+    fontSize:26,
+    fontWeight:"bold",
+    color:"#D62828",
+    letterSpacing:2,
   },
 
-  headerLeft: { paddingLeft: 16 },
-  logo: {
-    fontSize: 24,
-    fontWeight: "800",
-    color: "#D32F2F",
-    letterSpacing: 4,
-  },
-  headerRightButton: {
-    marginRight: 16,
-    paddingVertical: 7,
-    paddingHorizontal: 18,
-    borderRadius: 20,
-    backgroundColor: "#FEE2E2",
-  },
-  headerRightText: {
-    color: "#D32F2F",
-    fontWeight: "600",
-    fontSize: 16,
+  loginButton:{
+    backgroundColor:"#D62828",
+    paddingHorizontal:18,
+    paddingVertical:8,
+    borderRadius:20,
+    marginRight:10,
   },
 
-  
-  heroSection: {
-    paddingHorizontal: 20,
-    paddingTop: 30,
-    paddingBottom: 25,
-    backgroundColor: "#FFFFFF",
-    alignItems: "center",
-    borderBottomWidth: 1,
-    borderBottomColor: "#F1F5F9",
+  loginText:{
+    color:"#fff",
+    fontWeight:"700",
   },
 
-  heroTitle: {
-    fontSize: 26,
-    fontWeight: "700",
-    color: "#1E2937",
-    textAlign: "center",
-    lineHeight: 32,
+  hero:{
+    backgroundColor:"#FFFFFF",
+    paddingVertical:35,
+    paddingHorizontal:25,
+    alignItems:"center",
+    borderBottomWidth:1,
+    borderBottomColor:"#E2E8F0",
   },
 
-  heroSubtitle: {
-    fontSize: 15.5,
-    color: "#64748B",
-    textAlign: "center",
-    marginTop: 8,
-    lineHeight: 22,
+  heroTitle:{
+    fontSize:28,
+    fontWeight:"bold",
+    color:"#0F172A",
   },
 
-  
-  featuresContainer: {
-    paddingHorizontal: 20,
-    paddingTop: 25,
+  heroSubtitle:{
+    marginTop:8,
+    color:"#64748B",
+    fontSize:16,
   },
 
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#1E2937",
-    marginBottom: 16,
+  welcomeBox:{
+    marginTop:20,
+    alignItems:"center",
   },
 
-  featureCard: {
-    flexDirection: "row",
-    backgroundColor: "#FFFFFF",
-    padding: 18,
-    borderRadius: 18,
-    marginBottom: 14,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 5,
+  welcomeText:{
+    color:"#64748B",
+    fontSize:15,
   },
 
-  iconContainer: {
-    width: 52,
-    height: 52,
-    borderRadius: 14,
-    backgroundColor: "#FEF2F2",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 16,
+  userName:{
+    marginTop:5,
+    fontSize:20,
+    fontWeight:"bold",
+    color:"#D62828",
   },
 
-  icon: {
-    fontSize: 28,
+  section:{
+    padding:20,
   },
 
-  featureTextContainer: {
-    flex: 1,
-    justifyContent: "center",
+  sectionTitle:{
+    fontSize:22,
+    fontWeight:"700",
+    marginBottom:15,
+    color:"#0F172A",
   },
 
-  featureTitle: {
-    fontSize: 17,
-    fontWeight: "600",
-    color: "#1E2937",
-    marginBottom: 4,
+  card:{
+    flexDirection:"row",
+    alignItems:"center",
+    backgroundColor:"#FFFFFF",
+    borderRadius:18,
+    padding:18,
+    marginBottom:15,
+    elevation:4,
   },
 
-  featureDesc: {
-    fontSize: 14.5,
-    color: "#64748B",
-    lineHeight: 20,
+  cardIcon:{
+    fontSize:35,
+    marginRight:15,
   },
 
-
-  bottomContainer: {
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-    alignItems: "center",
+  cardText:{
+    flex:1,
   },
 
-  statusText: {
-    fontSize: 15,
-    color: "#475569",
-    textAlign: "center",
+  cardTitle:{
+    fontSize:18,
+    fontWeight:"700",
+    color:"#0F172A",
   },
+
+  cardSubtitle:{
+    marginTop:5,
+    color:"#64748B",
+    lineHeight:20,
+  },
+
+  featureCard:{
+    backgroundColor:"#FFFFFF",
+    borderRadius:18,
+    padding:18,
+    marginBottom:15,
+    elevation:3,
+  },
+
+  featureTitle:{
+    fontSize:17,
+    fontWeight:"700",
+    color:"#D62828",
+    marginBottom:8,
+  },
+
+  featureText:{
+    color:"#475569",
+    lineHeight:22,
+  },
+
+  footer:{
+    padding:30,
+    alignItems:"center",
+  },
+
+  footerTitle:{
+    fontSize:18,
+    fontWeight:"700",
+    color:"#0F172A",
+  },
+
+  footerText:{
+    marginTop:8,
+    color:"#64748B",
+  },
+
+  version:{
+    marginTop:15,
+    color:"#94A3B8",
+    fontSize:13,
+  },
+
 });

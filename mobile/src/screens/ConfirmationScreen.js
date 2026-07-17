@@ -5,88 +5,119 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
+  ScrollView,
 } from "react-native";
 
-export default function ConfirmationScreen({ route, navigation }) {
-  const requestId =
-    route?.params?.requestId || `REQ-${Math.floor(Math.random() * 100000)}`;
+import StatusCard from "../components/StatusCard";
 
-  const status = route?.params?.status || "Pending";
+export default function ConfirmationScreen({ route, navigation }) {
+  const {
+    requestId = `REQ-${Math.floor(Math.random() * 100000)}`,
+    status = "Pending",
+    emergencyType = "Medical",
+    selectedHospital = null,
+  } = route.params || {};
 
   const submittedTime = new Date().toLocaleString();
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.card}>
+      <ScrollView
+        contentContainerStyle={{
+          padding: 20,
+          paddingBottom: 40,
+        }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Success Card */}
 
-        <View style={styles.successCircle}>
-          <Text style={styles.successIcon}>✓</Text>
-        </View>
-
-        <Text style={styles.title}>
-          Emergency Alert Submitted
-        </Text>
-
-        <Text style={styles.subtitle}>
-          Your SOS request has been received successfully.
-          Our emergency response system is now processing
-          your request.
-        </Text>
-
-        <View style={styles.infoCard}>
-          <View style={styles.row}>
-            <Text style={styles.label}>Request ID</Text>
-            <Text style={styles.value}>{requestId}</Text>
+        <View style={styles.card}>
+          <View style={styles.successCircle}>
+            <Text style={styles.successIcon}>✓</Text>
           </View>
 
-          <View style={styles.divider} />
-
-          <View style={styles.row}>
-            <Text style={styles.label}>Status</Text>
-
-            <View style={styles.statusBadge}>
-              <Text style={styles.statusText}>{status}</Text>
-            </View>
-          </View>
-
-          <View style={styles.divider} />
-
-          <View style={styles.row}>
-            <Text style={styles.label}>Submitted</Text>
-            <Text style={styles.value}>{submittedTime}</Text>
-          </View>
-        </View>
-
-        <View style={styles.noteBox}>
-          <Text style={styles.noteTitle}>Information</Text>
-
-          <Text style={styles.note}>
-            You can monitor the live progress of your emergency
-            request from the Tracking screen.
+          <Text style={styles.title}>
+            Emergency Submitted
           </Text>
-        </View>
 
-        <TouchableOpacity
-          style={styles.trackButton}
-          onPress={() =>
-            navigation.navigate("Tracking", {
-              requestId,
-              status,
-            })
-          }
-        >
-          <Text style={styles.trackButtonText}>
-            Track Emergency
+          <Text style={styles.subtitle}>
+            Your emergency request has been sent successfully.
+            The emergency response team has been notified.
           </Text>
-        </TouchableOpacity>
 
-        <View style={styles.bottomButtons}>
+          {/* Status */}
+
+          <StatusCard status={status} />
+
+          {/* Request Information */}
+
+          <View style={styles.infoCard}>
+            <InfoRow
+              label="Request ID"
+              value={requestId}
+            />
+
+            <Divider />
+
+            <InfoRow
+              label="Emergency"
+              value={emergencyType}
+            />
+
+            <Divider />
+
+            <InfoRow
+              label="Status"
+              value={status}
+            />
+
+            <Divider />
+
+            <InfoRow
+              label="Submitted"
+              value={submittedTime}
+            />
+
+            {selectedHospital && (
+              <>
+                <Divider />
+
+                <InfoRow
+                  label="Hospital"
+                  value={selectedHospital.name}
+                />
+              </>
+            )}
+          </View>
+
+          {/* Information */}
+
+          <View style={styles.noteCard}>
+            <Text style={styles.noteTitle}>
+              Next Step
+            </Text>
+
+            <Text style={styles.noteText}>
+              You can now track the progress of your
+              emergency request in real-time.
+            </Text>
+          </View>
+
+          {/* Buttons */}
+
           <TouchableOpacity
-            style={styles.homeButton}
-            onPress={() => navigation.navigate("Home")}
+            style={styles.trackButton}
+            onPress={() =>
+              navigation.navigate("Tracking", {
+                requestId,
+                status,
+                emergencyType,
+                selectedHospital,
+              })
+            }
           >
-            <Text style={styles.homeText}>
-              Home
+            <Text style={styles.trackButtonText}>
+              Track Emergency
             </Text>
           </TouchableOpacity>
 
@@ -95,35 +126,59 @@ export default function ConfirmationScreen({ route, navigation }) {
             onPress={() => navigation.navigate("History")}
           >
             <Text style={styles.historyText}>
-              History
+              View History
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.homeButton}
+            onPress={() => navigation.navigate("Home")}
+          >
+            <Text style={styles.homeText}>
+              Back to Home
             </Text>
           </TouchableOpacity>
         </View>
-
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
+}
+
+function InfoRow({ label, value }) {
+  return (
+    <View style={styles.row}>
+      <Text style={styles.label}>
+        {label}
+      </Text>
+
+      <Text style={styles.value}>
+        {value}
+      </Text>
+    </View>
+  );
+}
+
+function Divider() {
+  return <View style={styles.divider} />;
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F1F5F9",
-    justifyContent: "center",
-    padding: 20,
+    backgroundColor: "#F8FAFC",
   },
 
   card: {
-    backgroundColor: "#fff",
-    borderRadius: 25,
-    padding: 25,
-    elevation: 8,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 24,
+    padding: 24,
+    elevation: 6,
   },
 
   successCircle: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     backgroundColor: "#DCFCE7",
     justifyContent: "center",
     alignItems: "center",
@@ -132,23 +187,23 @@ const styles = StyleSheet.create({
   },
 
   successIcon: {
-    fontSize: 50,
+    fontSize: 52,
     color: "#16A34A",
     fontWeight: "bold",
   },
 
   title: {
-    fontSize: 24,
-    fontWeight: "700",
+    fontSize: 26,
+    fontWeight: "bold",
     textAlign: "center",
     color: "#0F172A",
   },
 
   subtitle: {
-    marginTop: 12,
+    marginTop: 10,
     textAlign: "center",
     color: "#64748B",
-    lineHeight: 23,
+    lineHeight: 24,
     marginBottom: 25,
   },
 
@@ -156,61 +211,51 @@ const styles = StyleSheet.create({
     backgroundColor: "#F8FAFC",
     borderRadius: 18,
     padding: 18,
+    marginTop: 10,
   },
 
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 8,
-  },
-
-  divider: {
-    height: 1,
-    backgroundColor: "#E2E8F0",
-    marginVertical: 4,
+    paddingVertical: 10,
   },
 
   label: {
     color: "#64748B",
     fontSize: 14,
+    fontWeight: "600",
   },
 
   value: {
-    fontWeight: "700",
     color: "#0F172A",
+    fontWeight: "700",
     fontSize: 14,
     flex: 1,
     textAlign: "right",
-    marginLeft: 10,
+    marginLeft: 15,
   },
 
-  statusBadge: {
-    backgroundColor: "#FEF3C7",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
+  divider: {
+    height: 1,
+    backgroundColor: "#E2E8F0",
   },
 
-  statusText: {
-    color: "#B45309",
-    fontWeight: "700",
-  },
-
-  noteBox: {
+  noteCard: {
     backgroundColor: "#EFF6FF",
     borderRadius: 15,
     padding: 16,
-    marginTop: 22,
+    marginTop: 25,
   },
 
   noteTitle: {
     fontWeight: "700",
-    color: "#1D4ED8",
-    marginBottom: 6,
+    color: "#2563EB",
+    marginBottom: 8,
+    fontSize: 16,
   },
 
-  note: {
+  noteText: {
     color: "#475569",
     lineHeight: 22,
   },
@@ -219,47 +264,41 @@ const styles = StyleSheet.create({
     backgroundColor: "#D62828",
     padding: 18,
     borderRadius: 15,
+    marginTop: 30,
     alignItems: "center",
-    marginTop: 28,
   },
 
   trackButtonText: {
-    color: "#fff",
-    fontWeight: "700",
+    color: "#FFFFFF",
     fontSize: 17,
-  },
-
-  bottomButtons: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 18,
-  },
-
-  homeButton: {
-    flex: 1,
-    marginRight: 8,
-    padding: 15,
-    borderRadius: 12,
-    backgroundColor: "#E2E8F0",
-    alignItems: "center",
+    fontWeight: "bold",
   },
 
   historyButton: {
-    flex: 1,
-    marginLeft: 8,
-    padding: 15,
-    borderRadius: 12,
     backgroundColor: "#2563EB",
+    padding: 18,
+    borderRadius: 15,
+    marginTop: 15,
+    alignItems: "center",
+  },
+
+  historyText: {
+    color: "#FFFFFF",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+
+  homeButton: {
+    backgroundColor: "#E2E8F0",
+    padding: 18,
+    borderRadius: 15,
+    marginTop: 15,
     alignItems: "center",
   },
 
   homeText: {
     color: "#0F172A",
-    fontWeight: "700",
-  },
-
-  historyText: {
-    color: "#fff",
-    fontWeight: "700",
+    fontWeight: "bold",
+    fontSize: 16,
   },
 });
