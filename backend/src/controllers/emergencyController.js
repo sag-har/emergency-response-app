@@ -1,53 +1,41 @@
 const { sql } = require("../config/db");
 const crypto = require("crypto");
 
-// ==========================================
-// EXISTING WEEK 5 DELIVERABLES
-// ==========================================
+// =======================================================
+// EXISTING WEEK 5 DELIVERABLES (OPTIMIZED & ENHANCED)
+// =======================================================
 
 // Create Emergency Request
 const createEmergencyRequest = async (req, res) => {
   try {
-    const { emergencyType, notes, latitude, longitude } = req.body;
-    const userId = req.user.id; // JWT se aayi hui User ID
+    const { emergencyType, notes, latitude, longitude } = req.body; 
+    const userId = req.user?.id || "USR-DUMMY-9992";
 
-    // 1. Strict validation for database constraints
     if (!emergencyType || !latitude || !longitude) {
-      return res.status(400).json({
-        success: false,
-        message: "Emergency type, latitude, and longitude are required",
-      });
+      return res.status(400).json({ success: false, message: "Missing required fields" });
     }
 
-    // 2. Database check constraint verification ('Accident', 'Fire', 'Medical')
-    const allowedTypes = ['Accident', 'Fire', 'Medical'];
-    if (!allowedTypes.includes(emergencyType)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid emergency type. Must be 'Accident', 'Fire', or 'Medical'",
-      });
-    }
+    // 1. Generate unique ID on Server Side
+    const requestId = crypto.randomUUID(); 
+    const status = "Pending";
 
-    const requestId = crypto.randomUUID();
-    const status = "Pending"; // Matches DB default constraint
-
-    // 3. Exact Column Names matched to your DB script
+    // 2. Insert into SQL
     await sql.query`
-      INSERT INTO [emergency_requests] 
-      (id, user_id, emergency_type, notes, lat, lng, status)
+      INSERT INTO dbo.emergency_requests 
+      (id, user_id, emergency_type, notes, lat, lng, status, created_at, updated_at)
       VALUES 
-      (${requestId}, ${userId}, ${emergencyType}, ${notes || null}, ${latitude}, ${longitude}, ${status})
+      (${requestId}, ${userId}, ${emergencyType}, ${notes || null}, ${latitude}, ${longitude}, ${status}, GETDATE(), GETDATE())
     `;
 
+    // 3. Send back the EXACT ID to frontend
     res.status(201).json({
       success: true,
-      message: "Emergency request submitted successfully",
-      requestId,
-      status,
+      id: requestId, 
+      message: "Emergency request created"
     });
   } catch (error) {
     console.error("Create Emergency Error:", error);
-    res.status(500).json({ success: false, message: "Server Error creating emergency request" });
+    res.status(500).json({ success: false, message: "Database Error" });
   }
 };
 
@@ -55,12 +43,23 @@ const createEmergencyRequest = async (req, res) => {
 const getEmergencyRequestById = async (req, res) => {
   try {
     const { id } = req.params;
+    const cleanId = String(id).trim();
+
+    console.log(`🔍 Executing Database Lookup for Emergency ID: '${cleanId}'`);
 
     const result = await sql.query`
-      SELECT * FROM [emergency_requests] WHERE id = ${id}
+      SELECT 
+        er.*,
+        h.name AS hospital_name,
+        h.phone AS hospital_phone,
+        h.address AS hospital_address
+      FROM dbo.emergency_requests er
+      LEFT JOIN dbo.hospitals h ON TRIM(er.hospital_id) = TRIM(h.id)
+      WHERE TRIM(er.id) = ${cleanId}
     `;
 
     if (result.recordset.length === 0) {
+      console.log(`⚠️ Request ID '${cleanId}' database table me nahi mila.`);
       return res.status(404).json({ success: false, message: "Emergency request not found" });
     }
 
@@ -83,8 +82,10 @@ const getEmergencyRequestsByUserId = async (req, res) => {
       return res.status(400).json({ success: false, message: "userId query parameter is required" });
     }
 
+    const cleanUserId = String(userId).trim();
+
     const result = await sql.query`
-      SELECT * FROM [emergency_requests] WHERE user_id = ${userId} ORDER BY created_at DESC
+      SELECT * FROM dbo.emergency_requests WHERE TRIM(user_id) = ${cleanUserId} ORDER BY created_at DESC
     `;
 
     res.status(200).json({
@@ -103,15 +104,19 @@ const getNearestHospitals = async (req, res) => {
   try {
     const { lat, lng } = req.query;
 
-    if (!lat || !lng) {
+    if (!lat || !lng || lat === "undefined" || lng === "undefined") {
       return res.status(400).json({ 
         success: false, 
-        message: "Latitude (lat) and Longitude (lng) query parameters are required" 
+        message: "Valid Latitude (lat) and Longitude (lng) query parameters are required" 
       });
     }
 
     const userLat = parseFloat(lat);
     const userLng = parseFloat(lng);
+
+    if (isNaN(userLat) || isNaN(userLng)) {
+      return res.status(400).json({ success: false, message: "Coordinates must be valid numbers" });
+    }
 
     const result = await sql.query`
       SELECT 
@@ -123,11 +128,13 @@ const getNearestHospitals = async (req, res) => {
         phone, 
         is_available,
         (6371 * acos(
-          cos(radians(${userLat})) * cos(radians(lat)) * 
-          cos(radians(lng) - radians(${userLng})) + 
-          sin(radians(${userLat})) * sin(radians(lat))
+          CASE 
+            WHEN (cos(radians(${userLat})) * cos(radians(lat)) * cos(radians(lng) - radians(${userLng})) + sin(radians(${userLat})) * sin(radians(lat))) > 1 THEN 1
+            WHEN (cos(radians(${userLat})) * cos(radians(lat)) * cos(radians(lng) - radians(${userLng})) + sin(radians(${userLat})) * sin(radians(lat))) < -1 THEN -1
+            ELSE (cos(radians(${userLat})) * cos(radians(lat)) * cos(radians(lng) - radians(${userLng})) + sin(radians(${userLat})) * sin(radians(lat)))
+          END
         )) AS distance_km
-      FROM [hospitals]
+      FROM dbo.hospitals
       WHERE is_available = 1
       ORDER BY distance_km ASC
     `;
@@ -138,10 +145,11 @@ const getNearestHospitals = async (req, res) => {
       data: result.recordset,
     });
   } catch (error) {
-    console.error("Get Nearest Hospitals Error:", error);
+    console.error("❌ Get Nearest Hospitals Error Catch:", error);
     res.status(500).json({ 
       success: false, 
-      message: "Server Error retrieving sorted hospital list" 
+      message: "Server Error retrieving sorted hospital list",
+      error: error.message
     });
   }
 };
@@ -150,15 +158,14 @@ const getNearestHospitals = async (req, res) => {
 // EXISTING WEEK 6 DELIVERABLES
 // =======================================================
 
-// 1. GET ALL CONTACTS FOR LOGGED IN USER
 const getEmergencyContacts = async (req, res) => {
   try {
     const userId = req.user.id;
 
     const result = await sql.query`
       SELECT id, user_id, name, phone_number, relation, created_at 
-      FROM [emergency_contacts] 
-      WHERE user_id = ${userId}
+      FROM dbo.emergency_contacts 
+      WHERE TRIM(user_id) = TRIM(${userId})
       ORDER BY created_at DESC
     `;
 
@@ -173,7 +180,6 @@ const getEmergencyContacts = async (req, res) => {
   }
 };
 
-// 2. POST / ADD NEW EMERGENCY CONTACT
 const addEmergencyContact = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -189,7 +195,7 @@ const addEmergencyContact = async (req, res) => {
     const contactId = crypto.randomUUID();
 
     const result = await sql.query`
-      INSERT INTO [emergency_contacts] (id, user_id, name, phone_number, relation, created_at)
+      INSERT INTO dbo.emergency_contacts (id, user_id, name, phone_number, relation, created_at)
       OUTPUT inserted.created_at
       VALUES (${contactId}, ${userId}, ${name}, ${phone_number}, ${relation}, GETDATE())
     `;
@@ -212,14 +218,13 @@ const addEmergencyContact = async (req, res) => {
   }
 };
 
-// 3. DELETE EMERGENCY CONTACT BY ID
 const deleteEmergencyContact = async (req, res) => {
   try {
     const userId = req.user.id;
     const { id } = req.params;
 
     const checkResult = await sql.query`
-      SELECT id FROM [emergency_contacts] WHERE id = ${id} AND user_id = ${userId}
+      SELECT id FROM dbo.emergency_contacts WHERE TRIM(id) = TRIM(${id}) AND TRIM(user_id) = TRIM(${userId})
     `;
 
     if (checkResult.recordset.length === 0) {
@@ -230,7 +235,7 @@ const deleteEmergencyContact = async (req, res) => {
     }
 
     await sql.query`
-      DELETE FROM [emergency_contacts] WHERE id = ${id}
+      DELETE FROM dbo.emergency_contacts WHERE TRIM(id) = TRIM(${id})
     `;
 
     res.status(200).json({
@@ -243,15 +248,14 @@ const deleteEmergencyContact = async (req, res) => {
   }
 };
 
-// 4. Trigger alert notification for a specific emergency contact
 const notifyEmergencyContact = async (req, res) => {
   try {
     const userId = req.user.id;
     const contactId = req.params.id;
 
     const contactResult = await sql.query`
-      SELECT id, name, phone_number, relation FROM [emergency_contacts] 
-      WHERE id = ${contactId} AND user_id = ${userId}
+      SELECT id, name, phone_number, relation FROM dbo.emergency_contacts 
+      WHERE TRIM(id) = TRIM(${contactId}) AND TRIM(user_id) = TRIM(${userId})
     `;
 
     if (contactResult.recordset.length === 0) {
@@ -267,7 +271,7 @@ const notifyEmergencyContact = async (req, res) => {
     const message = `SOS Alert! Your emergency contact ${contact.name} (${contact.relation}) has been notified via call/SMS on ${contact.phone_number}.`;
 
     await sql.query`
-      INSERT INTO [notification_history] (id, user_id, title, message, is_read, created_at)
+      INSERT INTO dbo.notification_history (id, user_id, title, message, is_read, created_at)
       VALUES (${notificationId}, ${userId}, ${title}, ${message}, 0, GETDATE())
     `;
 
@@ -293,14 +297,11 @@ const notifyEmergencyContact = async (req, res) => {
 // NEW WEEK 7 DELIVERABLES (TRACK B - MEMBER C)
 // =======================================================
 
-// PUT /api/emergency/:id/status
-// Update status of an emergency request and trigger real push notification
 const updateEmergencyStatus = async (req, res) => {
   try {
-    const { id } = req.params; // Emergency Request ID
-    const { status } = req.body; // New status e.g., 'Dispatched', 'Resolved'
+    const { id } = req.params; 
+    const { status } = req.body; 
 
-    // 1. Validation
     if (!status) {
       return res.status(400).json({ success: false, message: "Status field is required" });
     }
@@ -313,9 +314,8 @@ const updateEmergencyStatus = async (req, res) => {
       });
     }
 
-    // 2. Check if emergency request exists
     const checkRequest = await sql.query`
-      SELECT user_id, emergency_type FROM [emergency_requests] WHERE id = ${id}
+      SELECT user_id, emergency_type FROM dbo.emergency_requests WHERE TRIM(id) = TRIM(${id})
     `;
 
     if (checkRequest.recordset.length === 0) {
@@ -325,32 +325,24 @@ const updateEmergencyStatus = async (req, res) => {
     const targetUserId = checkRequest.recordset[0].user_id;
     const emergencyType = checkRequest.recordset[0].emergency_type;
 
-    // 3. Update the status in [emergency_requests] table
     await sql.query`
-      UPDATE [emergency_requests] 
-      SET status = ${status} 
-      WHERE id = ${id}
+      UPDATE dbo.emergency_requests 
+      SET status = ${status}, updated_at = GETDATE() 
+      WHERE TRIM(id) = TRIM(${id})
     `;
 
-    // 4. Setup Notification log details
     const notificationId = crypto.randomUUID();
     const alertTitle = `Emergency Status: ${status}`;
     const alertMessage = `Your ${emergencyType} request status has been updated to [${status}]. Personnel have been coordinated.`;
 
-    // 5. Log the push notification history to the database
     await sql.query`
-      INSERT INTO [notification_history] (id, user_id, title, message, is_read, created_at)
+      INSERT INTO dbo.notification_history (id, user_id, title, message, is_read, created_at)
       VALUES (${notificationId}, ${targetUserId}, ${alertTitle}, ${alertMessage}, 0, GETDATE())
     `;
 
-    // 6. TRIGGER PUSH NOTIFICATION SYSTEM EVENT
-    // (This acts as the system trigger for foreground/background device push handlers)
     console.log(`🔔 [PUSH NOTIFICATION EVENT]: Triggered for User ${targetUserId} due to status change to [${status}]`);
-    
-    // Abstracted helper call for integration architecture (FCM / Expo)
     await mockPushServiceTrigger(targetUserId, alertTitle, alertMessage);
 
-    // 7. Success Response
     res.status(200).json({
       success: true,
       message: `Emergency request status updated to ${status} and push notification triggered successfully.`,
@@ -372,9 +364,83 @@ const updateEmergencyStatus = async (req, res) => {
   }
 };
 
-// Push Service Handler Simulation to satisfy logging and system integration verification
+const assignHospitalToEmergency = async (req, res) => {
+  try {
+    const emergencyId = req.body.emergencyId ? String(req.body.emergencyId).trim() : null;
+    const hospitalId = req.body.hospitalId ? String(req.body.hospitalId).trim() : null;
+
+    console.log("📥 [Assign Hospital Controller Input Cleaned]:", { emergencyId, hospitalId });
+
+    if (!emergencyId || !hospitalId) {
+      return res.status(400).json({
+        success: false,
+        message: "Both emergencyId and hospitalId are required",
+      });
+    }
+
+    const checkEmergency = await sql.query`
+      SELECT id, user_id, emergency_type 
+      FROM dbo.emergency_requests 
+      WHERE TRIM(id) = ${emergencyId}
+    `;
+
+    if (checkEmergency.recordset.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Emergency request not found in database" 
+      });
+    }
+
+    const targetUserId = checkEmergency.recordset[0].user_id;
+    const emergencyType = checkEmergency.recordset[0].emergency_type;
+
+    const checkHospital = await sql.query`
+      SELECT id, name FROM dbo.hospitals WHERE TRIM(id) = ${hospitalId}
+    `;
+
+    if (checkHospital.recordset.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        message: `Selected hospital ID [${hospitalId}] not found in database` 
+      });
+    }
+
+    const hospitalName = checkHospital.recordset[0].name;
+
+    await sql.query`
+      UPDATE dbo.emergency_requests
+      SET hospital_id = ${hospitalId}, status = 'Dispatched', updated_at = GETDATE()
+      WHERE TRIM(id) = ${emergencyId}
+    `;
+
+    const notificationId = crypto.randomUUID();
+    const alertTitle = `Hospital Dispatched: ${hospitalName}`;
+    const alertMessage = `${hospitalName} has accepted your ${emergencyType} request. Medical responders are en route.`;
+
+    await sql.query`
+      INSERT INTO dbo.notification_history (id, user_id, title, message, is_read, created_at)
+      VALUES (${notificationId}, ${targetUserId}, ${alertTitle}, ${alertMessage}, 0, GETDATE())
+    `;
+
+    console.log(`🔔 [ASSIGNMENT EVENT]: Hospital ${hospitalName} assigned to Emergency ${emergencyId}`);
+    await mockPushServiceTrigger(targetUserId, alertTitle, alertMessage);
+
+    res.status(200).json({
+      success: true,
+      message: "Hospital assigned successfully and status updated to Dispatched",
+      data: { emergencyId, hospitalId, status: "Dispatched" }
+    });
+  } catch (error) {
+    console.error("❌ Assign Hospital Controller Error:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Server Error assigning hospital to emergency request",
+      error: error.message 
+    });
+  }
+};
+
 const mockPushServiceTrigger = async (userId, title, message) => {
-  // Yeh function system execution logs clear rakhta hai demo aur test pipes ke liye
   console.log(`📱 Push Dispatch -> Device Token Registered to User: ${userId} | Payload: { Title: "${title}", Message: "${message}" }`);
 };
 
@@ -387,6 +453,7 @@ module.exports = {
   addEmergencyContact,
   deleteEmergencyContact,
   notifyEmergencyContact,
-  // Week 7 New Export
-  updateEmergencyStatus
+  updateEmergencyStatus,
+  assignHospitalToEmergency,
+  mockPushServiceTrigger
 };

@@ -1,5 +1,6 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { v4: uuidv4 } = require("uuid"); // Ensure: npm install uuid
 const { sql } = require("../config/db");
 
 const buildAuthToken = (user) => {
@@ -7,12 +8,9 @@ const buildAuthToken = (user) => {
     {
       id: user.id,
       phone: user.phone,
-      role: user.role,
     },
     process.env.JWT_SECRET || "SUPER_SECRET_KEY_123",
-    {
-      expiresIn: "7d",
-    }
+    { expiresIn: "7d" }
   );
 };
 
@@ -23,83 +21,34 @@ const registerUser = async (req, res) => {
     const { name, phone, password } = req.body;
 
     if (!name || !phone || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "All fields are required.",
-      });
+      return res.status(400).json({ success: false, message: "All fields are required." });
     }
 
     const cleanName = name.trim();
     const cleanPhone = phone.trim();
 
-    if (!/^\d{11}$/.test(cleanPhone)) {
-      return res.status(400).json({
-        success: false,
-        message: "Phone number must be exactly 11 digits.",
-      });
-    }
-
-    if (password.length < 6) {
-      return res.status(400).json({
-        success: false,
-        message: "Password must be at least 6 characters.",
-      });
-    }
-
     // Check if phone already exists
     const existingUser = await sql.query`
-      SELECT *
-      FROM dbo.Users
-      WHERE PhoneNumber = ${cleanPhone}
+      SELECT * FROM dbo.users WHERE phone_number = ${cleanPhone}
     `;
 
     if (existingUser.recordset.length > 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Phone number already exists.",
-      });
+      return res.status(400).json({ success: false, message: "Phone number already exists." });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const userId = uuidv4(); // Generate UUID as per your table design
 
-    // Insert user (UserID is IDENTITY)
+    // Insert user
     await sql.query`
-      INSERT INTO dbo.Users
-      (
-        FullName,
-        Email,
-        PhoneNumber,
-        PasswordHash,
-        Role,
-        CreatedAt
-      )
-      VALUES
-      (
-        ${cleanName},
-        ${""},
-        ${cleanPhone},
-        ${hashedPassword},
-        ${"Citizen"},
-        GETDATE()
-      )
+      INSERT INTO dbo.users (id, full_name, phone_number, password_hash)
+      VALUES (${userId}, ${cleanName}, ${cleanPhone}, ${hashedPassword})
     `;
-
-    // Fetch inserted user
-    const result = await sql.query`
-      SELECT TOP 1 *
-      FROM dbo.Users
-      WHERE PhoneNumber = ${cleanPhone}
-      ORDER BY UserID DESC
-    `;
-
-    const createdUser = result.recordset[0];
 
     const user = {
-      id: createdUser.UserID,
-      name: createdUser.FullName,
-      phone: createdUser.PhoneNumber,
-      email: createdUser.Email,
-      role: createdUser.Role,
+      id: userId,
+      name: cleanName,
+      phone: cleanPhone,
     };
 
     const token = buildAuthToken(user);
@@ -113,12 +62,7 @@ const registerUser = async (req, res) => {
 
   } catch (error) {
     console.error("Registration Error:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Server Error",
-      error: error.message,
-    });
+    return res.status(500).json({ success: false, message: "Server Error", error: error.message });
   }
 };
 
@@ -129,47 +73,31 @@ const loginUser = async (req, res) => {
     const { phone, password } = req.body;
 
     if (!phone || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "Phone and password are required.",
-      });
+      return res.status(400).json({ success: false, message: "Phone and password are required." });
     }
 
     const cleanPhone = phone.trim();
 
     const result = await sql.query`
-      SELECT *
-      FROM dbo.Users
-      WHERE PhoneNumber = ${cleanPhone}
+      SELECT * FROM dbo.users WHERE phone_number = ${cleanPhone}
     `;
 
     if (result.recordset.length === 0) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid phone number or password.",
-      });
+      return res.status(401).json({ success: false, message: "Invalid phone number or password." });
     }
 
     const user = result.recordset[0];
 
-    const isMatch = await bcrypt.compare(
-      password,
-      user.PasswordHash
-    );
+    const isMatch = await bcrypt.compare(password, user.password_hash);
 
     if (!isMatch) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid phone number or password.",
-      });
+      return res.status(401).json({ success: false, message: "Invalid phone number or password." });
     }
 
     const responseUser = {
-      id: user.UserID,
-      name: user.FullName,
-      phone: user.PhoneNumber,
-      email: user.Email,
-      role: user.Role,
+      id: user.id,
+      name: user.full_name,
+      phone: user.phone_number,
     };
 
     const token = buildAuthToken(responseUser);
@@ -183,12 +111,7 @@ const loginUser = async (req, res) => {
 
   } catch (error) {
     console.error("Login Error:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Server Error",
-      error: error.message,
-    });
+    return res.status(500).json({ success: false, message: "Server Error", error: error.message });
   }
 };
 

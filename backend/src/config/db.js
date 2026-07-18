@@ -2,11 +2,11 @@ const sql = require("mssql");
 
 const config = {
   user: process.env.DB_USER || "sa",
-  password: process.env.DB_PASSWORD || "admin123!",
+  password: process.env.DB_PASSWORD || "admin123@",
   //
   server: process.env.DB_SERVER || "127.0.0.1", 
   port: parseInt(process.env.DB_PORT) || 1433,
-  database: "EmergencyResponseDB",
+  database: process.env.DB_DATABASE || "EmergencyAppDB",
   options: {
     encrypt: true,
     trustServerCertificate: true,

@@ -60,6 +60,21 @@ export const register = async (
 };
 
 // ===============================
+// GET USER PROFILE 
+// ===============================
+export const getProfile = async (userId) => {
+  try {
+    // Note: Agar standard middleware auth laga hai, to endpoint sirf '/auth/profile' ya '/auth/me' hota hai. 
+    // Hum absolute safe side ke liye path mapping adjust kar rahe hain:
+    const response = await API.get('/auth/profile'); 
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching user profile from database:", error);
+    throw error.response?.data || { success: false, message: "Profile retrieval failure." };
+  }
+};
+
+// ===============================
 // LOGOUT
 // ===============================
 export const logout = async () => {
@@ -103,3 +118,17 @@ export const updateStoredUser = async (
     JSON.stringify(updatedUser)
   );
 };
+
+// Named exports aur default object exports dono ka support de diya taake screen crash safe rahe
+const authService = {
+  login,
+  register,
+  getProfile,
+  logout,
+  getToken,
+  getUser,
+  isLoggedIn,
+  updateStoredUser
+};
+
+export default authService;
