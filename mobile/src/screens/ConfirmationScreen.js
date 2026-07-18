@@ -23,12 +23,15 @@ export default function ConfirmationScreen({ route, navigation }) {
 
   const submittedTime = new Date().toLocaleString();
 
-  // 🛠️ FIX: Tracking button validation
+  // Tracking button validation — only block navigation if we genuinely
+  // have no id at all. Client-generated "REQ-..." ids ARE valid DB ids:
+  // the backend accepts and stores the id sent from SOSScreen as-is
+  // (see createEmergencyRequest's `customId || id` handling), so a
+  // "REQ-" prefix does not mean the record is missing from the database.
   const handleTrackEmergency = () => {
-    // Agar ID undefined hai ya "REQ-" format mein hai (not in DB), stop navigation
-    if (!requestId || (typeof requestId === 'string' && requestId.startsWith("REQ-"))) {
+    if (!requestId) {
       Alert.alert(
-        "Invalid Tracking ID", 
+        "Invalid Tracking ID",
         "Database record not found. Please ensure the emergency was submitted successfully."
       );
       return;
