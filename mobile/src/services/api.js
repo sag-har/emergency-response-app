@@ -4,7 +4,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 // CHANGE THIS TO YOUR PC IP
 // Example: 192.168.0.107
 const API = axios.create({
+<<<<<<< Updated upstream
   baseURL: "http://192.168.1.23:5000/api",
+=======
+  baseURL: "http://192.168.1.10:5000/api",
+>>>>>>> Stashed changes
   timeout: 10000,
 });
 

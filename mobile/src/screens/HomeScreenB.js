@@ -10,8 +10,15 @@ import {
 
 export default function HomeScreenB({ navigation }) {
   const openSOS = (type) => {
+<<<<<<< Updated upstream
     navigation.navigate("SOS", { type });
   };
+=======
+  navigation.navigate("SOS", {
+    type: type,
+  });
+};
+>>>>>>> Stashed changes
 
   return (
     <SafeAreaView style={styles.container}>

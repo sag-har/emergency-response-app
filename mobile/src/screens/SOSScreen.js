@@ -15,8 +15,26 @@ import { AppContext } from "../context/AppContext";
 
 export default function SOSScreen({ route, navigation }) {
   const { addHistory } = useContext(AppContext);
+<<<<<<< Updated upstream
 
   const selectedType = route?.params?.type || "General";
+=======
+  const { user } = useAuth(); 
+  
+  const incomingType =
+  route?.params?.emergencyType ||
+  route?.params?.type ||
+  "General";
+
+let normalizedType = incomingType;
+
+if (normalizedType === "Police") {
+  normalizedType = "Crime";
+}
+
+console.log("Received Type:", incomingType);
+console.log("Normalized Type:", normalizedType);
+>>>>>>> Stashed changes
 
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
@@ -72,6 +90,7 @@ export default function SOSScreen({ route, navigation }) {
         </View>
 
         <View style={styles.card}>
+<<<<<<< Updated upstream
           <Text style={styles.label}>Current Location</Text>
 
           <View style={styles.locationBox}>
@@ -92,6 +111,9 @@ export default function SOSScreen({ route, navigation }) {
         <View style={styles.card}>
           <Text style={styles.label}>Emergency Details</Text>
 
+=======
+          <Text style={styles.sectionLabel}>Emergency Details</Text>
+>>>>>>> Stashed changes
           <TextInput
             placeholder="Describe your emergency situation..."
             multiline

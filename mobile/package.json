@@ -7,7 +7,15 @@
     "@react-navigation/bottom-tabs": "^7.17.2",
     "@react-navigation/native": "^7.3.3",
     "@react-navigation/native-stack": "^7.17.2",
+<<<<<<< Updated upstream
     "expo": "~56.0.9",
+=======
+    "@react-navigation/stack": "^7.10.5",
+    "axios": "^1.18.0",
+    "expo": "~56.0.14",
+    "expo-font": "~56.0.7",
+    "expo-location": "~56.0.21",
+>>>>>>> Stashed changes
     "expo-status-bar": "~56.0.4",
     "react": "19.2.3",
     "react-dom": "19.2.3",
