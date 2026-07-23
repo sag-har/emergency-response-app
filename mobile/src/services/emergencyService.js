@@ -35,6 +35,12 @@ const emergencyService = {
     const res = await API.post("/emergency/hospital/assign", { emergencyId, hospitalId });
     return res.data;
   },
+
+  // GET /api/emergency/:id/location (Week 4 - live map tracking)
+  getLiveLocation: async (id) => {
+    const res = await API.get(`/emergency/${id}/location`);
+    return res.data;
+  },
 };
 
 export default emergencyService;

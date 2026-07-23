@@ -1,4 +1,29 @@
 const { sql } = require("../config/db");
+const { registerDeviceToken } = require("../services/pushService");
+
+// ===================================================
+// REGISTER (OR REFRESH) A DEVICE'S EXPO PUSH TOKEN
+// POST /api/notifications/register-token
+// Called on app load once the user is authenticated, and
+// again whenever Expo issues a new token for the device.
+// ===================================================
+const registerToken = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { expoPushToken, platform } = req.body;
+
+    if (!expoPushToken) {
+      return res.status(400).json({ success: false, message: "expoPushToken is required" });
+    }
+
+    await registerDeviceToken(userId, expoPushToken, platform);
+
+    res.status(200).json({ success: true, message: "Device token registered" });
+  } catch (error) {
+    console.error("Register Device Token Error:", error);
+    res.status(500).json({ success: false, message: "Server Error registering device token" });
+  }
+};
 
 // ===================================================
 // GET ALL NOTIFICATIONS FOR LOGGED-IN USER
@@ -106,6 +131,7 @@ const clearNotifications = async (req, res) => {
 };
 
 module.exports = {
+  registerToken,
   getNotifications,
   markNotificationRead,
   deleteNotification,

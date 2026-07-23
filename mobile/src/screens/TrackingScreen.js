@@ -10,10 +10,14 @@ import {
 
 import StatusCard from "../components/StatusCard";
 import Timeline from "../components/Timeline";
-import LocationCard from "../components/LocationCard";
+import LiveTrackingMap from "../components/LiveTrackingMap";
 
 import { PrimaryButton } from "../components";
 import emergencyService from "../services/emergencyService";
+
+// Live location is mocked server-side but still updates over time, so
+// poll it periodically while this screen is focused.
+const LOCATION_POLL_INTERVAL_MS = 5000;
 
 export default function TrackingScreen({ navigation, route }) {
   // Safe extraction layer: extracts ID passed from creation or dashboard screens
@@ -29,24 +33,55 @@ export default function TrackingScreen({ navigation, route }) {
   const [eta, setEta] = useState("12 mins");
   const [loading, setLoading] = useState(false);
 
+  const [userLocation, setUserLocation] = useState(null);
+  const [ambulanceLocation, setAmbulanceLocation] = useState(null);
+  const [mapLoading, setMapLoading] = useState(true);
+
   useEffect(() => {
     loadTracking();
+    loadLiveLocation();
 
     // Auto-assignment handler if user just came back from selecting a hospital
     if (hospital && currentEmergencyId) {
       handleHospitalAssignment(currentEmergencyId, hospital.id);
     }
+
+    // Poll the mocked live-location endpoint so the ambulance marker
+    // and ETA visibly progress while this screen is open.
+    const pollId = setInterval(loadLiveLocation, LOCATION_POLL_INTERVAL_MS);
+    return () => clearInterval(pollId);
   }, [currentEmergencyId, hospital]);
+
+  const loadLiveLocation = async () => {
+    if (!currentEmergencyId || currentEmergencyId === "REQ-00001") {
+      setMapLoading(false);
+      return;
+    }
+
+    try {
+      const response = await emergencyService.getLiveLocation(currentEmergencyId);
+      const liveData = response?.data;
+
+      if (liveData) {
+        setUserLocation(liveData.userLocation);
+        setAmbulanceLocation(liveData.ambulanceLocation);
+        setEta(`${liveData.etaMinutes} mins`);
+      }
+    } catch (error) {
+      // Non-fatal — the map just shows its loading placeholder until
+      // the next successful poll.
+    } finally {
+      setMapLoading(false);
+    }
+  };
 
   const loadTracking = async () => {
     if (!currentEmergencyId || currentEmergencyId === "REQ-00001") return;
 
     try {
       setLoading(true);
-      console.log(`📡 Fetching live status for ID: ${currentEmergencyId}`);
 
       const response = await emergencyService.getEmergencyById(currentEmergencyId);
-      console.log("⚡ Live Tracking Status Loaded:", response);
 
       const liveData = response?.data || response;
       if (liveData && liveData.status) {
@@ -54,13 +89,9 @@ export default function TrackingScreen({ navigation, route }) {
         if (liveData.eta) setEta(liveData.eta);
       }
     } catch (error) {
-      console.log("❌ Tracking load failed at path:", error.config?.baseURL + error.config?.url);
-      console.error("Tracking dynamic load error Status:", error.response?.status);
-
-      // 🛠️ FIX: 404 Handle par fallback processing set ki hai taake UI refresh loading spinner par freeze na ho
+      // Fall back to whatever status we already have locally so the
+      // UI doesn't get stuck on a loading spinner if the lookup fails.
       if (error.response?.status === 404) {
-        console.warn("Target package missing from active SQL transaction registry. Syncing fallback object states.");
-        
         if (backupEmergency) {
           setStatus(backupEmergency.status || "Pending");
         } else {
@@ -76,14 +107,13 @@ export default function TrackingScreen({ navigation, route }) {
 
   const handleHospitalAssignment = async (emergId, hospId) => {
     try {
-      console.log(`🚀 Triggering hospital assignment to backend for emergency: ${emergId}`);
       const response = await emergencyService.assignHospitalToEmergency(emergId, hospId);
       if (response.success) {
         Alert.alert("Success", "Hospital assigned and responders dispatched!");
         setStatus("Dispatched"); // Instantly update state visually
       }
     } catch (error) {
-      console.error("❌ Failed to assign hospital via API:", error.message);
+      Alert.alert("Sync Issue", "Unable to confirm hospital assignment. Please try again.");
     }
   };
 
@@ -107,7 +137,14 @@ export default function TrackingScreen({ navigation, route }) {
           <Text style={styles.eta}>🚑 {eta}</Text>
         </View>
 
-        <LocationCard />
+        <View style={styles.mapWrapper}>
+          <Text style={styles.mapHeading}>Responder Location</Text>
+          <LiveTrackingMap
+            userLocation={userLocation}
+            ambulanceLocation={ambulanceLocation}
+            loading={mapLoading}
+          />
+        </View>
 
         <Timeline currentStatus={status} />
 
@@ -151,6 +188,8 @@ const styles = StyleSheet.create({
   title: { fontSize: 28, fontWeight: "700", color: "#111827" },
   subtitle: { marginTop: 5, color: "#64748B" },
   requestCard: { backgroundColor: "#fff", marginHorizontal: 20, marginBottom: 15, padding: 18, borderRadius: 18, elevation: 3 },
+  mapWrapper: { marginHorizontal: 20, marginBottom: 15 },
+  mapHeading: { fontWeight: "700", fontSize: 16, marginBottom: 10, color: "#111827" },
   label: { color: "#64748B", marginBottom: 5 },
   requestId: { fontSize: 18, fontWeight: "700", color: "#111827" },
   etaCard: { backgroundColor: "#DC2626", marginHorizontal: 20, marginBottom: 18, borderRadius: 18, padding: 22, alignItems: "center" },

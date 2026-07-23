@@ -47,7 +47,7 @@ export default function HomeScreenB({ navigation }) {
           );
         }
       } catch (err) {
-        console.log("Hospital Error", err);
+        // Non-fatal — hospital preview list just stays empty.
       }
 
       try {
@@ -65,7 +65,7 @@ export default function HomeScreenB({ navigation }) {
           }
         }
       } catch (err) {
-        console.log("History Error", err);
+        // Non-fatal — recent emergency preview just stays empty.
       }
     } finally {
       setLoading(false);

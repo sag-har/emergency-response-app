@@ -13,10 +13,6 @@ export default function HospitalDetailScreen({ route, navigation }) {
       setLoading(false);
       const cleanHospitalId = hospital.id || hospital._id || hospital.ID;
 
-      console.log("⚡ Frontend Attempting To Assign:");
-      console.log("Emergency ID Parameter:", emergencyId);
-      console.log("Extracted Hospital ID:", cleanHospitalId);
-
       if (!emergencyId) {
         navigation.replace("Tracking", {
           emergencyId: null,

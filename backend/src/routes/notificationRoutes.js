@@ -3,11 +3,15 @@ const router = express.Router();
 const protect = require("../middleware/authMiddleware");
 
 const {
+  registerToken,
   getNotifications,
   markNotificationRead,
   deleteNotification,
   clearNotifications,
 } = require("../controllers/notificationController");
+
+// POST /api/notifications/register-token (Week 7 - push notifications)
+router.post("/register-token", protect, registerToken);
 
 // GET /api/notifications
 router.get("/", protect, getNotifications);

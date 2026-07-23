@@ -15,6 +15,8 @@ import {
   clearAuthStorage,
 } from "../storage/authStorage";
 
+import { registerForPushNotificationsAsync } from "../utils/notificationHelper";
+
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -37,6 +39,17 @@ export const AuthProvider = ({ children }) => {
     loadAuth();
   }, []);
 
+  // Register (or refresh) this device's push token any time we have a
+  // logged-in user — covers both auto-login on app launch and a fresh
+  // login. Registration failures are non-fatal (e.g. permission denied,
+  // running in a simulator without push capability), so we swallow
+  // errors here rather than surfacing them to the user.
+  useEffect(() => {
+    if (token) {
+      registerForPushNotificationsAsync();
+    }
+  }, [token]);
+
   const loadAuth = async () => {
     try {
       const storedToken = await getToken();
@@ -48,7 +61,7 @@ export const AuthProvider = ({ children }) => {
         setUser(storedUser);
       }
     } catch (error) {
-      console.log("Auth Load Error:", error);
+      // Non-fatal: just means the user starts logged out.
     } finally {
       setIsLoading(false);
     }

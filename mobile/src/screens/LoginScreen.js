@@ -45,14 +45,10 @@ export default function LoginScreen({ navigation }) {
   setLoading(true);
 
   try {
-    console.log("Attempting login with:", { phone });
-
     const response = await API.post("/auth/login", {
       phone,
       password,
     });
-
-    console.log("Login Response:", response.data);
 
     if (response?.data?.token && response?.data?.user) {
       const { token, user } = response.data;
@@ -66,7 +62,6 @@ export default function LoginScreen({ navigation }) {
   {
     text: "Continue",
     onPress: async () => {
-      console.log("Opening Main Navigator...");
       navigation.reset({
         index: 0,
         routes: [{ name: "Main" }],

@@ -115,6 +115,30 @@ END
 GO
 
 /* ---------------------------------------------------------
+   DEVICE TOKENS (Week 7 - Push Notifications)
+   Stores Expo push tokens per user/device so the backend can
+   fan out a push notification whenever an emergency status
+   changes. A user can have multiple tokens (multiple devices),
+   so this is a one-to-many table keyed by the token itself.
+   --------------------------------------------------------- */
+IF OBJECT_ID('dbo.device_tokens', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.device_tokens (
+        id           VARCHAR(64)   NOT NULL PRIMARY KEY,
+        user_id      VARCHAR(64)   NOT NULL,
+        expo_token   VARCHAR(255)  NOT NULL UNIQUE,
+        platform     VARCHAR(20)   NULL,
+        created_at   DATETIME2     NOT NULL DEFAULT GETDATE(),
+        updated_at   DATETIME2     NOT NULL DEFAULT GETDATE(),
+        CONSTRAINT FK_device_tokens_user
+            FOREIGN KEY (user_id) REFERENCES dbo.users(id) ON DELETE CASCADE
+    );
+
+    CREATE INDEX IX_device_tokens_user_id ON dbo.device_tokens(user_id);
+END
+GO
+
+/* ---------------------------------------------------------
    SEED DATA - a few Islamabad/Rawalpindi hospitals so the
    Hospital Finder module has something real to query.
    --------------------------------------------------------- */

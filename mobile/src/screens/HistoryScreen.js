@@ -33,7 +33,6 @@ export default function HistoryScreen() {
         setHistory(localHistory);
       }
     } catch (error) {
-      console.log(error);
       setHistory(localHistory);
     } finally {
       setRefreshing(false);

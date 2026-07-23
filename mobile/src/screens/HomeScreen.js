@@ -76,7 +76,7 @@ export default function HomeScreen({ navigation }) {
         setUser(userData);
       }
     } catch (e) {
-      console.log(e);
+      // Non-fatal — user simply stays logged out until they retry.
     } finally {
       setLoading(false);
     }

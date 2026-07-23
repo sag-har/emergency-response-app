@@ -9,13 +9,9 @@ const API = axios.create({
 API.interceptors.request.use(async (config) => {
   const token = await getToken();
 
-  console.log("Stored Token:", token);
-
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-
-  console.log("Headers:", config.headers);
 
   return config;
 });

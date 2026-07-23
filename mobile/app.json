@@ -32,7 +32,13 @@
       }
     },
     "plugins": [
-      "expo-font"
+      "expo-font",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow Emergency Response to use your location to attach accurate GPS coordinates to your emergency request."
+        }
+      ]
     ]
   }
 }

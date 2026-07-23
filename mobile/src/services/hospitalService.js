@@ -19,9 +19,6 @@ const hospitalService = {
 
   assignHospital: async (emergencyId, hospitalId) => {
   try {
-    console.log("🚀 Sending Request to Exact Endpoint...");
-    
-    // Yahan API wrapper ki jagah complete URL de kar test karein taake routing clear ho:
     // Apne backend IP aur Port ke mutabik ise adjust kar sakte hain agar 192.168... use kr rhe hain
     const res = await API.post(`/emergency/hospital/assign`, { 
       emergencyId: String(emergencyId).trim(), 

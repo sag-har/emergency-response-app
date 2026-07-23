@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,11 +10,16 @@ import {
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import * as Location from "expo-location";
 
 import { AppContext } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext"; 
 import emergencyService from "../services/emergencyService";
 import { generateRequestId } from "../utils/helpers";
+
+// Fallback used only if GPS permission is denied or a fix can't be
+// obtained in time, so the flow never hard-fails on location alone.
+const FALLBACK_COORDS = { latitude: 33.6844, longitude: 73.0479 };
 
 export default function SOSScreen({ navigation, route }) {
   const { addHistory } = useContext(AppContext);
@@ -29,12 +34,49 @@ export default function SOSScreen({ navigation, route }) {
 
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
+  const [locating, setLocating] = useState(true);
+  const [coords, setCoords] = useState(null);
+  const [locationError, setLocationError] = useState(null);
+
+  useEffect(() => {
+    fetchDeviceLocation();
+  }, []);
+
+  const fetchDeviceLocation = async () => {
+    try {
+      setLocating(true);
+      setLocationError(null);
+
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        setLocationError("Location permission denied — using an approximate default location.");
+        setCoords(FALLBACK_COORDS);
+        return;
+      }
+
+      const position = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High,
+      });
+
+      setCoords({
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+      });
+    } catch (error) {
+      setLocationError("Unable to get your current location — using an approximate default location.");
+      setCoords(FALLBACK_COORDS);
+    } finally {
+      setLocating(false);
+    }
+  };
 
   const submitSOS = async () => {
     if (!notes.trim()) {
       Alert.alert("Missing Details", "Please describe your emergency.");
       return;
     }
+
+    const activeCoords = coords || FALLBACK_COORDS;
 
     try {
       setLoading(true);
@@ -47,14 +89,12 @@ export default function SOSScreen({ navigation, route }) {
         emergency_type: normalizedType,       
         emergencyType: normalizedType,        
         notes: notes.trim(),
-        lat: 33.6844,                          
-        lng: 73.0479,                          
-        latitude: 33.6844,                     
-        longitude: 73.0479,                    
+        lat: activeCoords.latitude,
+        lng: activeCoords.longitude,
+        latitude: activeCoords.latitude,
+        longitude: activeCoords.longitude,
         status: "Pending",
       };
-
-      console.log("📡 Expo Network Link -> Dispatching JSON payload:", emergencyPayload);
 
       let finalId = requestId; 
       let finalPayload = { ...emergencyPayload };
@@ -66,8 +106,6 @@ export default function SOSScreen({ navigation, route }) {
         } else {
           response = await emergencyService.createEmergency(emergencyPayload);
         }
-        
-        console.log("📝 Expo HTTP Response Core Matrix:", JSON.stringify(response));
 
         const serverGeneratedId = 
           response?.data?.id || 
@@ -81,12 +119,10 @@ export default function SOSScreen({ navigation, route }) {
           response?.insertedId;
         
         if (serverGeneratedId) {
-          console.log(`🎯 Validated Dynamic Database ID Intercepted: ${serverGeneratedId}`);
           finalId = serverGeneratedId;
           finalPayload.id = serverGeneratedId; 
         }
       } catch (e) {
-        console.error("❌ Network layer transaction aborted:", e.response?.data || e.message);
         Alert.alert(
           "Database Connection Error", 
           "Server could not write the request record. Verify your local IP address in services config."
@@ -105,7 +141,6 @@ export default function SOSScreen({ navigation, route }) {
         emergencyType: normalizedType,
       });
     } catch (error) {
-      console.error("SOS thread exception context:", error);
       Alert.alert("Submission Failure", "Unable to broadcast emergency tracking package.");
     } finally {
       setLoading(false);
@@ -130,10 +165,21 @@ export default function SOSScreen({ navigation, route }) {
           <View style={styles.locationBox}>
             <Text style={styles.locationIcon}>📍</Text>
             <View style={{ flex: 1 }}>
-              <Text style={styles.locationTitle}>GPS Location</Text>
-              <Text style={styles.locationSubtitle}>
-                Live tracking active. Mapped data linked onto database fields.
-              </Text>
+              {locating ? (
+                <>
+                  <Text style={styles.locationTitle}>Getting GPS fix…</Text>
+                  <Text style={styles.locationSubtitle}>Please wait a moment.</Text>
+                </>
+              ) : (
+                <>
+                  <Text style={styles.locationTitle}>
+                    {coords ? `${coords.latitude.toFixed(5)}, ${coords.longitude.toFixed(5)}` : "Location unavailable"}
+                  </Text>
+                  <Text style={styles.locationSubtitle}>
+                    {locationError || "This is the location that will be sent with your request."}
+                  </Text>
+                </>
+              )}
             </View>
           </View>
         </View>

@@ -1,5 +1,6 @@
 const { sql } = require("../config/db");
 const crypto = require("crypto");
+const { sendPushNotification } = require("../services/pushService");
 
 // =======================================================
 // EXISTING WEEK 5 DELIVERABLES (OPTIMIZED & ENHANCED)
@@ -59,8 +60,6 @@ const getEmergencyRequestById = async (req, res) => {
     const { id } = req.params;
     const cleanId = String(id).trim();
 
-    console.log(`🔍 Executing Database Lookup for Emergency ID: '${cleanId}'`);
-
     const result = await sql.query`
       SELECT 
         er.*,
@@ -73,7 +72,6 @@ const getEmergencyRequestById = async (req, res) => {
     `;
 
     if (result.recordset.length === 0) {
-      console.log(`⚠️ Request ID '${cleanId}' database table me nahi mila.`);
       return res.status(404).json({ success: false, message: "Emergency request not found" });
     }
 
@@ -289,6 +287,11 @@ const notifyEmergencyContact = async (req, res) => {
       VALUES (${notificationId}, ${userId}, ${title}, ${message}, 0, GETDATE())
     `;
 
+    await sendPushNotification(userId, title, message, {
+      type: "contact_notified",
+      contactId,
+    });
+
     res.status(200).json({
       success: true,
       message: `Emergency notification successfully triggered for ${contact.name}`,
@@ -354,8 +357,11 @@ const updateEmergencyStatus = async (req, res) => {
       VALUES (${notificationId}, ${targetUserId}, ${alertTitle}, ${alertMessage}, 0, GETDATE())
     `;
 
-    console.log(`🔔 [PUSH NOTIFICATION EVENT]: Triggered for User ${targetUserId} due to status change to [${status}]`);
-    await mockPushServiceTrigger(targetUserId, alertTitle, alertMessage);
+    await sendPushNotification(targetUserId, alertTitle, alertMessage, {
+      type: "emergency_status",
+      requestId: id,
+      status,
+    });
 
     res.status(200).json({
       success: true,
@@ -382,8 +388,6 @@ const assignHospitalToEmergency = async (req, res) => {
   try {
     const emergencyId = req.body.emergencyId ? String(req.body.emergencyId).trim() : null;
     const hospitalId = req.body.hospitalId ? String(req.body.hospitalId).trim() : null;
-
-    console.log("📥 [Assign Hospital Controller Input Cleaned]:", { emergencyId, hospitalId });
 
     if (!emergencyId || !hospitalId) {
       return res.status(400).json({
@@ -436,8 +440,11 @@ const assignHospitalToEmergency = async (req, res) => {
       VALUES (${notificationId}, ${targetUserId}, ${alertTitle}, ${alertMessage}, 0, GETDATE())
     `;
 
-    console.log(`🔔 [ASSIGNMENT EVENT]: Hospital ${hospitalName} assigned to Emergency ${emergencyId}`);
-    await mockPushServiceTrigger(targetUserId, alertTitle, alertMessage);
+    await sendPushNotification(targetUserId, alertTitle, alertMessage, {
+      type: "hospital_dispatched",
+      requestId: emergencyId,
+      hospitalId,
+    });
 
     res.status(200).json({
       success: true,
@@ -454,8 +461,71 @@ const assignHospitalToEmergency = async (req, res) => {
   }
 };
 
-const mockPushServiceTrigger = async (userId, title, message) => {
-  console.log(`📱 Push Dispatch -> Device Token Registered to User: ${userId} | Payload: { Title: "${title}", Message: "${message}" }`);
+// =======================================================
+// WEEK 4 DELIVERABLE: LIVE AMBULANCE LOCATION (MOCKED STREAM)
+// GET /api/emergency/:id/location
+//
+// There's no real fleet-tracking hardware behind this app, so we
+// simulate a believable "ambulance en route" feed: the mocked unit
+// starts a fixed distance away from the user's submitted location and
+// linearly approaches it over a ~10 minute window, seeded off the
+// request's created_at timestamp so repeated polls are consistent
+// (the ambulance doesn't jump around between requests).
+// =======================================================
+const getEmergencyLiveLocation = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const cleanId = String(id).trim();
+
+    const result = await sql.query`
+      SELECT id, lat, lng, status, created_at FROM dbo.emergency_requests WHERE TRIM(id) = ${cleanId}
+    `;
+
+    if (result.recordset.length === 0) {
+      return res.status(404).json({ success: false, message: "Emergency request not found" });
+    }
+
+    const request = result.recordset[0];
+    const userLat = request.lat;
+    const userLng = request.lng;
+
+    // Deterministic "starting point" for the mocked ambulance, offset a
+    // small distance from the user so the two map markers are visibly
+    // distinct. The offset direction is derived from the request id so
+    // it's stable across polls but varies between requests.
+    const seed = cleanId.split("").reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+    const angle = (seed % 360) * (Math.PI / 180);
+    const startOffsetKm = 3.5; // ambulance starts ~3.5km away
+    const kmToDegLat = 1 / 110.574;
+    const kmToDegLng = 1 / (111.320 * Math.cos(userLat * (Math.PI / 180)));
+
+    const startLat = userLat + startOffsetKm * Math.cos(angle) * kmToDegLat;
+    const startLng = userLng + startOffsetKm * Math.sin(angle) * kmToDegLng;
+
+    // Progress the ambulance toward the user over a 10 minute ETA window.
+    const elapsedMs = Date.now() - new Date(request.created_at).getTime();
+    const totalWindowMs = 10 * 60 * 1000;
+    const progress = request.status === "Resolved" ? 1 : Math.min(1, Math.max(0, elapsedMs / totalWindowMs));
+
+    const ambulanceLat = startLat + (userLat - startLat) * progress;
+    const ambulanceLng = startLng + (userLng - startLng) * progress;
+
+    const remainingMinutes = Math.max(0, Math.ceil(10 * (1 - progress)));
+
+    res.status(200).json({
+      success: true,
+      data: {
+        requestId: request.id,
+        status: request.status,
+        userLocation: { latitude: userLat, longitude: userLng },
+        ambulanceLocation: { latitude: ambulanceLat, longitude: ambulanceLng },
+        etaMinutes: remainingMinutes,
+      },
+    });
+  } catch (error) {
+    console.error("Get Emergency Live Location Error:", error);
+    res.status(500).json({ success: false, message: "Server Error retrieving live location" });
+  }
 };
 
 module.exports = { 
@@ -469,5 +539,5 @@ module.exports = {
   notifyEmergencyContact,
   updateEmergencyStatus,
   assignHospitalToEmergency,
-  mockPushServiceTrigger
+  getEmergencyLiveLocation,
 };

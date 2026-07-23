@@ -12,7 +12,8 @@ const {
   addEmergencyContact,
   deleteEmergencyContact,
   notifyEmergencyContact,
-  assignHospitalToEmergency
+  assignHospitalToEmergency,
+  getEmergencyLiveLocation
 } = require("../controllers/emergencyController");
 
 // ==========================================
@@ -44,6 +45,7 @@ router.post("/contacts/:id/notify", protect, notifyEmergencyContact);
 // 5. 🎯 TARGET REQUEST ID DYNAMIC ROUTER (Absolute Bottom)
 // ==========================================
 router.put("/:id/status", protect, updateEmergencyStatus);
+router.get("/:id/location", protect, getEmergencyLiveLocation);
 router.get("/:id", protect, getEmergencyRequestById);
 
 module.exports = router;
